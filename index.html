@@ -3,72 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TechBugs Directory Sync</title>
+  <title>RustDesk Address Book | TechBugs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #08121a;
-      --surface: rgba(10, 21, 31, 0.88);
-      --surface-2: rgba(16, 31, 45, 0.95);
-      --border: rgba(111, 168, 220, 0.18);
-      --border-strong: rgba(111, 168, 220, 0.35);
-      --text: #ecf6ff;
-      --muted: #8ea8bd;
-      --accent: #27c2a3;
-      --accent-2: #5ac8fa;
-      --danger: #ff6b6b;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-      --radius: 18px;
-      --font-title: 'Space Grotesk', sans-serif;
-      --font-body: 'IBM Plex Sans', sans-serif;
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --bg: #09090b; /* Zinc 950 */
+      --surface: #18181b; /* Zinc 900 */
+      --surface-hover: #27272a; /* Zinc 800 */
+      --border: #27272a; 
+      --border-focus: #3f3f46;
+      --primary: #6366f1; /* Indigo 500 */
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --danger: #ef4444;
+      --text: #f4f4f5; /* Zinc 50 */
+      --text-muted: #a1a1aa; /* Zinc 400 */
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
     }
 
-    * { box-sizing: border-box; }
+    body.light-mode {
+      --bg: #f8fafc; 
+      --surface: #ffffff; 
+      --surface-hover: #f1f5f9; 
+      --border: #e2e8f0; 
+      --border-focus: #cbd5e1;
+      --text: #0f172a; 
+      --text-muted: #64748b; 
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 70%),
+        linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: var(--font-body);
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(39, 39, 42, 0.4) 0%, transparent 70%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
       color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(90, 200, 250, 0.12), transparent 28%),
-        radial-gradient(circle at top right, rgba(39, 194, 163, 0.12), transparent 30%),
-        linear-gradient(135deg, #061018 0%, #091722 45%, #08131b 100%);
+      font-family: var(--font);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s, color 0.3s;
     }
 
-    button, input {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease;
-    }
-
-    button:hover { transform: translateY(-1px); }
-    button:active { transform: translateY(0); }
+    button, input { font: inherit; outline: none; }
 
     input {
       width: 100%;
-      padding: 12px 14px;
-      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.2);
       border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
       color: var(--text);
-      outline: none;
+      font-size: 14px;
+      transition: all 0.2s;
     }
 
-    input:focus {
-      border-color: var(--border-strong);
-      box-shadow: 0 0 0 3px rgba(90, 200, 250, 0.14);
+    body.light-mode input { background: #ffffff; color: #0f172a; }
+    input::placeholder { color: var(--text-muted); opacity: 0.6; }
+    input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+
+    button {
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    input::placeholder { color: #66839a; }
+    button:active { transform: scale(0.97); }
 
+    .btn-main {
+      background: var(--primary);
+      color: white;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    .btn-main:hover { background: var(--primary-hover); }
+
+    .btn-secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-secondary:hover { background: var(--surface-hover); border-color: var(--border-focus); }
+
+    .btn-icon-only {
+      padding: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+    }
+    .btn-icon-only:hover { color: var(--text); background: var(--surface-hover); border-color: var(--border-focus); }
+    .btn-icon-only svg { width: 16px; height: 16px; }
+
+    /* --- Login Overlay --- */
     .login-shell {
       min-height: 100vh;
       display: flex;
@@ -77,381 +131,307 @@
       padding: 24px;
     }
 
-    .login-card,
-    .app-shell {
-      width: min(1120px, 100%);
-      border: 1px solid var(--border);
-      background: var(--surface);
-      backdrop-filter: blur(18px);
-      box-shadow: var(--shadow);
-      border-radius: 28px;
-    }
-
     .login-card {
-      max-width: 460px;
-      padding: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 40px 32px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      width: 100%;
+      max-width: 380px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 20px;
+      text-align: center;
     }
 
-    .eyebrow {
-      color: var(--accent-2);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
+    .brand-logo {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 8px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+    }
+
+    .login-card h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+    .login-card p { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-top: -8px; }
+
+    .auth-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+    .auth-row { display: flex; gap: 12px; }
+    .auth-row button { flex: 1; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: var(--text-muted);
       font-size: 12px;
-      font-weight: 600;
+      margin: 8px 0;
     }
+    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
+    .divider::before { margin-right: 10px; }
+    .divider::after { margin-left: 10px; }
 
-    h1, h2 {
-      margin: 0;
-      font-family: var(--font-title);
-      letter-spacing: -0.03em;
-    }
-
-    .muted {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .auth-stack,
-    .form-grid,
-    .toolbar,
-    .folder-row,
-    .header-actions,
-    .meta-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .auth-stack {
-      flex-direction: column;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-      color: #05202a;
-      font-weight: 700;
-      padding: 12px 16px;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 12px 16px;
-    }
-
-    .status {
-      min-height: 20px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
+    .status { min-height: 20px; font-size: 13px; color: var(--text-muted); }
     .status.error { color: var(--danger); }
-    .status.success { color: var(--accent); }
+    .status.success { color: var(--primary); }
 
-    .setup-box {
-      display: none;
-      flex-direction: column;
-      gap: 12px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      border-radius: 18px;
-      padding: 18px;
-    }
-
-    .setup-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-    }
-
+    /* --- Main App Layout --- */
     .app-shell {
       display: none;
-      padding: 26px;
-      margin: 24px auto;
-      gap: 22px;
+      width: 100%;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 40px 20px;
       flex-direction: column;
+      gap: 24px;
+      animation: fadeIn 0.4s ease-out;
     }
 
-    .header {
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .app-header {
       display: flex;
       justify-content: space-between;
-      gap: 16px;
       align-items: center;
       flex-wrap: wrap;
+      gap: 16px;
     }
 
-    .title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .title-row h1 {
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text) 0%, var(--text-muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .title-block h1 {
-      font-size: clamp(28px, 4vw, 42px);
-    }
-
-    .header-actions {
-      align-items: center;
-      justify-content: flex-end;
-    }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
 
     .pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.04);
+      padding: 8px 12px;
+      border-radius: var(--radius-full);
+      background: rgba(128, 128, 128, 0.05);
       border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .banner,
-    .panel {
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-    }
-
-    .banner {
-      display: none;
-      padding: 14px 16px;
-      color: #ffc7c7;
-      background: rgba(255, 107, 107, 0.08);
-      border-color: rgba(255, 107, 107, 0.2);
-      line-height: 1.6;
-    }
-
-    .panel {
-      padding: 20px;
-    }
-
-    .meta-row {
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .panel-title {
-      font-family: var(--font-title);
-      font-size: 18px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    label {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .toolbar {
-      justify-content: flex-end;
-      margin-top: 16px;
-    }
-
-    .folder-row {
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .folder-pills {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .folder-pill {
-      padding: 10px 14px;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid transparent;
-    }
-
-    .folder-pill.active {
-      color: var(--text);
-      border-color: var(--border-strong);
-      background: rgba(90, 200, 250, 0.08);
-    }
-
-    .search {
-      max-width: 340px;
-      margin-left: auto;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 14px 16px;
-      text-align: left;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    th {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    tr:last-child td { border-bottom: 0; }
-
-    .tag {
-      display: inline-flex;
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--muted);
+      color: var(--text-muted);
       font-size: 12px;
+      font-weight: 500;
     }
 
-    .table-actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: nowrap;
-    }
-
-    .table-actions button {
+    /* Theme Toggle */
+    .theme-toggle {
+      position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
-      padding: 0;
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .theme-toggle:hover { background: var(--surface-hover); color: var(--text); }
+    .theme-toggle svg { width: 18px; height: 18px; position: absolute; transition: transform 0.3s, opacity 0.3s; }
+    .theme-toggle .sun { opacity: 0; transform: rotate(-90deg); }
+    body.light-mode .theme-toggle .sun { opacity: 1; transform: rotate(0); }
+    body.light-mode .theme-toggle .moon { opacity: 0; transform: rotate(90deg); }
+
+    /* --- Cards & Sections --- */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-title { font-size: 16px; font-weight: 600; color: var(--text); }
+
+    .folder-row { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+    .folder-pills { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+
+    .folder-pill {
+      background: transparent;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
       border: 1px solid transparent;
-      border-radius: 8px;
+      font-weight: 500;
+    }
+    .folder-pill:hover { color: var(--text); background: rgba(128, 128, 128, 0.05); }
+    .folder-pill.active {
+      background: var(--surface-hover);
+      color: var(--text);
+      border-color: var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+    body.light-mode .folder-pill.active { background: #f1f5f9; }
+
+    .folder-tools { display: flex; gap: 6px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
     }
 
-    .table-actions button svg {
-      width: 16px;
-      height: 16px;
-      pointer-events: none;
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+    
+    .form-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+
+    .search-wrap { position: relative; width: 300px; max-width: 100%; }
+    .search-wrap input { padding-left: 36px; border-radius: var(--radius-full); }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 14px; color: var(--text-muted); }
+
+    /* --- Table --- */
+    .table-container {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow-x: auto;
+      margin-top: 16px;
     }
 
-    .table-actions button:hover:not(:disabled) {
-      border-color: var(--border-strong);
-      background: rgba(255, 255, 255, 0.08);
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    thead { background: rgba(128, 128, 128, 0.03); }
+    body.light-mode thead { background: rgba(0, 0, 0, 0.02); }
+
+    th {
+      font-size: 12px; font-weight: 500; color: var(--text-muted);
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
     }
 
-    .table-actions button:disabled {
-      cursor: not-allowed;
-      opacity: 0.3;
+    td {
+      padding: 14px 16px; font-size: 14px;
+      border-bottom: 1px solid rgba(128, 128, 128, 0.08); vertical-align: middle;
     }
+    body.light-mode td { border-bottom: 1px solid rgba(0, 0, 0, 0.04); }
+    
+    tbody tr { transition: background 0.15s; }
+    tbody tr:hover { background: rgba(128, 128, 128, 0.04); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .tag {
+      display: inline-flex; padding: 4px 10px; border-radius: var(--radius-full);
+      background: rgba(128, 128, 128, 0.08); color: var(--text-muted); font-size: 12px; border: 1px solid var(--border);
+    }
+
+    .table-actions { display: flex; gap: 6px; }
+    .btn-action {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: var(--radius-sm);
+      background: transparent; border: 1px solid transparent; color: var(--text-muted);
+    }
+    .btn-action svg { width: 16px; height: 16px; pointer-events: none; }
+    .btn-action:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border); color: var(--text); }
+    .btn-action:disabled { opacity: 0.3; cursor: not-allowed; }
 
     .footer {
-      color: var(--muted);
-      text-align: center;
-      font-size: 12px;
-      padding-top: 8px;
+      text-align: center; padding: 24px 0 12px 0; color: var(--text-muted);
+      font-size: 12px; margin-top: auto;
     }
 
-    @media (max-width: 800px) {
-      .app-shell { padding: 18px; }
-      .header, .folder-row, .meta-row { flex-direction: column; align-items: stretch; }
-      .search { max-width: none; margin-left: 0; }
-      .header-actions { justify-content: flex-start; }
+    @media (max-width: 768px) {
+      .card-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .search-wrap { width: 100%; }
+      .folder-row { flex-direction: column; align-items: stretch; }
+      .folder-tools { justify-content: flex-end; }
     }
   </style>
 </head>
 <body>
+
   <section class="login-shell" id="loginShell">
     <div class="login-card">
-      <div class="eyebrow">Cloud Sync</div>
-      <h2>Sign in to sync endpoints</h2>
-      <p class="muted">Access your RustDesk directory securely across all your devices.</p>
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+      </div>
+      <div>
+        <h2>TechBugs Identity</h2>
+        <p>Welcome to RustDesk Address Book.<br>Sign in to access your synchronized endpoints.</p>
+      </div>
+      
       <div class="auth-stack">
-        <button class="btn-primary" type="button" id="googleLoginBtn">Continue with Google</button>
+        <button class="btn-secondary" type="button" id="googleLoginBtn" style="width: 100%;">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12s4.477 10 10 10 10-4.477 10-10z"></path><path d="M12 8v8M8 12h8"></path></svg>
+          Continue with Google
+        </button>
+        
+        <div class="divider">OR</div>
+        
         <input type="text" id="authEmail" placeholder="Email address">
         <input type="password" id="authPassword" placeholder="Password">
-        <div class="auth-stack" style="flex-direction: row;">
-          <button class="btn-primary" type="button" id="emailLoginBtn" style="flex: 1;">Sign In</button>
-          <button class="btn-secondary" type="button" id="emailSignupBtn" style="flex: 1;">Create Account</button>
+        
+        <div class="auth-row">
+          <button class="btn-secondary" type="button" id="emailSignupBtn">Create Account</button>
+          <button class="btn-main" type="button" id="emailLoginBtn">Sign In</button>
         </div>
-        <div class="auth-stack" style="flex-direction: row;">
-          <button class="btn-secondary" type="button" id="openSetupBtn" style="flex: 1;">Firebase Setup</button>
-          <button class="btn-secondary" type="button" id="clearSetupBtn" style="flex: 1;">Clear Setup</button>
-        </div>
+        
         <div class="status" id="loginStatus"></div>
-      </div>
-      <div class="setup-box" id="setupBox">
-        <h3>Firebase Project Setup</h3>
-        <div class="setup-grid">
-          <div class="field"><label for="cfgApiKey">API Key</label><input type="text" id="cfgApiKey"></div>
-          <div class="field"><label for="cfgAuthDomain">Auth Domain</label><input type="text" id="cfgAuthDomain" placeholder="your-project.firebaseapp.com"></div>
-          <div class="field"><label for="cfgProjectId">Project ID</label><input type="text" id="cfgProjectId"></div>
-          <div class="field"><label for="cfgStorageBucket">Storage Bucket</label><input type="text" id="cfgStorageBucket"></div>
-          <div class="field"><label for="cfgMessagingSenderId">Messaging Sender ID</label><input type="text" id="cfgMessagingSenderId"></div>
-          <div class="field"><label for="cfgAppId">App ID</label><input type="text" id="cfgAppId"></div>
-        </div>
-        <div class="auth-stack" style="flex-direction: row; margin-top: 8px;">
-          <button class="btn-primary" type="button" id="saveSetupBtn" style="flex: 1;">Save</button>
-          <button class="btn-secondary" type="button" id="closeSetupBtn" style="flex: 1;">Close</button>
-        </div>
       </div>
     </div>
   </section>
 
   <main class="app-shell" id="appShell">
-    <div class="header">
-      <div class="title-block">
-        <div class="eyebrow">TechBugs</div>
-        <h1>System Directory</h1>
+    <div class="app-header">
+      <div class="title-row">
+        <h1>RustDesk Address Book</h1>
       </div>
       <div class="header-actions">
-        <div class="pill"><span id="userEmail">Not signed in</span><span>•</span><span id="syncStatus">Waiting</span></div>
-        <button class="btn-secondary" type="button" id="themeBtn">Theme</button>
-        <button class="btn-secondary" type="button" id="exportBtn">Export JSON</button>
-        <button class="btn-secondary" type="button" id="setupAgainBtn">Firebase Setup</button>
+        <div class="pill"><span id="userEmail">Not signed in</span> <span style="margin:0 4px; opacity:0.3;">|</span> <span id="syncStatus" style="color:var(--primary);">Waiting</span></div>
+        
+        <button class="theme-toggle" id="themeToggleBtn" title="Toggle Theme">
+          <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        </button>
         <button class="btn-secondary" type="button" id="logoutBtn">Log out</button>
       </div>
     </div>
 
-    <section class="panel">
-      <div class="meta-row">
-        <div class="panel-title">Folders</div>
-        <div class="pill" id="folderLabel">No folder selected</div>
-      </div>
+    <section class="card">
       <div class="folder-row">
         <div class="folder-pills" id="folderPills"></div>
-        <div class="toolbar" style="margin-top: 0;">
-          <button class="btn-secondary" type="button" id="moveLeftBtn">Move Left</button>
-          <button class="btn-secondary" type="button" id="moveRightBtn">Move Right</button>
-          <button class="btn-secondary" type="button" id="addFolderBtn">Add Folder</button>
+        <div class="folder-tools">
+          <button class="btn-icon-only" type="button" id="moveLeftBtn" title="Move Left">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button class="btn-icon-only" type="button" id="moveRightBtn" title="Move Right">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+          <div style="width: 1px; background: var(--border); margin: 0 4px;"></div>
+          <button class="btn-secondary" type="button" id="addFolderBtn">New Folder</button>
           <button class="btn-secondary" type="button" id="renameFolderBtn">Rename</button>
-          <button class="btn-secondary" type="button" id="deleteFolderBtn">Delete</button>
+          <button class="btn-secondary" type="button" id="deleteFolderBtn" style="color: var(--danger); border-color: rgba(239,68,68,0.2);">Delete</button>
         </div>
       </div>
     </section>
 
-    <section class="panel">
-      <div class="meta-row">
-        <div class="panel-title">Client Details</div>
-        <div class="pill" id="modeTag">New entry</div>
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">Client Details</div>
+        <div class="pill" style="font-size:11px; padding:4px 10px;" id="modeTag">New entry</div>
       </div>
       <form id="clientForm">
         <div class="form-grid">
@@ -472,27 +452,30 @@
             <input type="text" id="clientNotes" placeholder="Win 10 | Shop PC">
           </div>
         </div>
-        <div class="toolbar">
+        <div class="form-footer">
           <button class="btn-secondary" type="button" id="clearBtn">Clear</button>
-          <button class="btn-primary" type="submit">Save Client</button>
+          <button class="btn-main" type="submit">Save Client</button>
         </div>
       </form>
     </section>
 
-    <section class="panel">
-      <div class="meta-row">
-        <div class="panel-title">Saved Endpoints</div>
-        <input class="search" type="text" id="searchBox" placeholder="Search clients or IDs...">
+    <section class="card">
+      <div class="card-header" style="margin-bottom:0;">
+        <div class="card-title" id="folderLabel">Endpoints</div>
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchBox" placeholder="Search clients or IDs...">
+        </div>
       </div>
-      <div class="table-wrap">
+      <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>Client</th>
-              <th>ID</th>
-              <th>Password</th>
-              <th>Notes</th>
-              <th>Actions</th>
+              <th style="width:25%;">Client</th>
+              <th style="width:20%;">ID</th>
+              <th style="width:20%;">Password</th>
+              <th style="width:20%;">Notes</th>
+              <th style="width:15%;">Actions</th>
             </tr>
           </thead>
           <tbody id="clientsBody"></tbody>
@@ -500,7 +483,7 @@
       </div>
     </section>
 
-    <div class="footer">App developed by Yash Shah (+91 9028800161) | Sync-enabled build</div>
+    <div class="footer">App developed by TechBugs (Yash Shah +91 7028533162) | Sync-enabled build version 1.0</div>
   </main>
 
   <script type="module">
@@ -509,14 +492,12 @@
     import { doc, getDoc, getFirestore, onSnapshot, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
     const STORAGE_KEY = 'rustdesk_clients_folders_v1';
-    const FIREBASE_CONFIG_KEY = 'techbugs_firebase_config_v1';
     const THEME_KEY = 'techbugs_theme';
     const DEFAULT_FOLDERS = [
       { name: 'Workplace 1', clients: [] },
       { name: 'Workplace 2', clients: [] }
     ];
 
-    // Clean, modern SVG icons
     const ICONS = {
       connect: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
       edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>',
@@ -544,7 +525,6 @@
     let unsubscribeSnapshot = null;
     let lastSavedHash = '';
     let applyingRemoteState = false;
-    let firebaseAppReady = false;
 
     const loginShell = document.getElementById('loginShell');
     const appShell = document.getElementById('appShell');
@@ -556,7 +536,6 @@
     const loginStatus = document.getElementById('loginStatus');
     const syncStatus = document.getElementById('syncStatus');
     const userEmail = document.getElementById('userEmail');
-    const setupBox = document.getElementById('setupBox');
 
     const clientName = document.getElementById('clientName');
     const clientId = document.getElementById('clientId');
@@ -565,26 +544,15 @@
     const authEmail = document.getElementById('authEmail');
     const authPassword = document.getElementById('authPassword');
 
-    const cfgApiKey = document.getElementById('cfgApiKey');
-    const cfgAuthDomain = document.getElementById('cfgAuthDomain');
-    const cfgProjectId = document.getElementById('cfgProjectId');
-    const cfgStorageBucket = document.getElementById('cfgStorageBucket');
-    const cfgMessagingSenderId = document.getElementById('cfgMessagingSenderId');
-    const cfgAppId = document.getElementById('cfgAppId');
-
+    // Theme logic
     if (localStorage.getItem(THEME_KEY) === 'light') {
-      document.body.style.filter = 'invert(1) hue-rotate(180deg)';
+      document.body.classList.add('light-mode');
     }
 
-    function setTheme() {
-      const isLight = localStorage.getItem(THEME_KEY) === 'light';
-      document.body.style.filter = isLight ? 'invert(1) hue-rotate(180deg)' : 'none';
-    }
-
-    function toggleTheme() {
-      localStorage.setItem(THEME_KEY, localStorage.getItem(THEME_KEY) === 'light' ? 'dark' : 'light');
-      setTheme();
-    }
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+      localStorage.setItem(THEME_KEY, document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    });
 
     function setLoginStatus(message, tone = '') {
       loginStatus.textContent = message || '';
@@ -593,57 +561,6 @@
 
     function setSyncStatus(message) {
       syncStatus.textContent = message;
-    }
-
-    function readSavedFirebaseConfig() {
-      const raw = localStorage.getItem(FIREBASE_CONFIG_KEY);
-      if (!raw) return null;
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return null;
-      }
-    }
-
-    function getFirebaseConfig() {
-      const saved = readSavedFirebaseConfig();
-      if (saved) return saved;
-      const hasEmbeddedConfig = Object.values(embeddedFirebaseConfig).every((value) => value && !String(value).startsWith('YOUR_'));
-      return hasEmbeddedConfig ? embeddedFirebaseConfig : null;
-    }
-
-    function fillSetupForm(config) {
-      const value = config || {};
-      cfgApiKey.value = value.apiKey || '';
-      cfgAuthDomain.value = value.authDomain || '';
-      cfgProjectId.value = value.projectId || '';
-      cfgStorageBucket.value = value.storageBucket || '';
-      cfgMessagingSenderId.value = value.messagingSenderId || '';
-      cfgAppId.value = value.appId || '';
-    }
-
-    function readSetupForm() {
-      return {
-        apiKey: cfgApiKey.value.trim(),
-        authDomain: cfgAuthDomain.value.trim(),
-        projectId: cfgProjectId.value.trim(),
-        storageBucket: cfgStorageBucket.value.trim(),
-        messagingSenderId: cfgMessagingSenderId.value.trim(),
-        appId: cfgAppId.value.trim()
-      };
-    }
-
-    function isValidConfig(config) {
-      return Object.values(config).every((value) => value);
-    }
-
-    function openSetup() {
-      fillSetupForm(getFirebaseConfig());
-      setupBox.style.display = 'flex';
-    }
-
-    function closeSetup() {
-      setupBox.style.display = 'none';
     }
 
     function cloneDefaultFolders() {
@@ -709,7 +626,7 @@
         });
         folderPills.appendChild(button);
       });
-      folderLabel.textContent = currentFolder()?.name || 'No folder selected';
+      folderLabel.textContent = currentFolder()?.name || 'Endpoints';
     }
 
     function togglePasswordCell(cell, show) {
@@ -734,6 +651,7 @@
         const row = document.createElement('tr');
 
         const passwordCell = document.createElement('td');
+        passwordCell.style.fontFamily = "monospace";
         passwordCell.innerHTML = '<span class="hidden-pass">••••••••</span><span class="real-pass" style="display:none"></span>';
         passwordCell.querySelector('.real-pass').textContent = client.password;
 
@@ -743,6 +661,7 @@
 
         const connectBtn = document.createElement('button');
         connectBtn.type = 'button';
+        connectBtn.className = 'btn-action';
         connectBtn.innerHTML = ICONS.connect;
         connectBtn.title = 'Connect';
         connectBtn.addEventListener('click', () => {
@@ -751,9 +670,10 @@
 
         const upBtn = document.createElement('button');
         upBtn.type = 'button';
+        upBtn.className = 'btn-action';
         upBtn.innerHTML = ICONS.up;
         upBtn.title = 'Move Up';
-        upBtn.disabled = index === 0 || query !== ''; // Disable if searching or at top
+        upBtn.disabled = index === 0 || query !== ''; 
         upBtn.addEventListener('click', async () => {
           if (index > 0 && !query) {
             [folder.clients[index], folder.clients[index - 1]] = [folder.clients[index - 1], folder.clients[index]];
@@ -766,9 +686,10 @@
 
         const downBtn = document.createElement('button');
         downBtn.type = 'button';
+        downBtn.className = 'btn-action';
         downBtn.innerHTML = ICONS.down;
         downBtn.title = 'Move Down';
-        downBtn.disabled = index === folder.clients.length - 1 || query !== ''; // Disable if searching or at bottom
+        downBtn.disabled = index === folder.clients.length - 1 || query !== ''; 
         downBtn.addEventListener('click', async () => {
           if (index < folder.clients.length - 1 && !query) {
             [folder.clients[index], folder.clients[index + 1]] = [folder.clients[index + 1], folder.clients[index]];
@@ -781,12 +702,14 @@
 
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
+        editBtn.className = 'btn-action';
         editBtn.innerHTML = ICONS.edit;
         editBtn.title = 'Edit';
         editBtn.addEventListener('click', () => loadIntoForm(index));
 
         const eyeBtn = document.createElement('button');
         eyeBtn.type = 'button';
+        eyeBtn.className = 'btn-action';
         eyeBtn.innerHTML = ICONS.eye;
         eyeBtn.title = 'Show password';
         eyeBtn.addEventListener('mousedown', () => togglePasswordCell(passwordCell, true));
@@ -795,6 +718,8 @@
 
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
+        deleteBtn.className = 'btn-action';
+        deleteBtn.style.color = 'var(--danger)';
         deleteBtn.innerHTML = ICONS.delete;
         deleteBtn.title = 'Delete';
         deleteBtn.addEventListener('click', async () => {
@@ -809,8 +734,8 @@
         actions.appendChild(actionWrap);
 
         row.innerHTML = `
-          <td style="font-weight:600">${escapeHtml(client.name)}</td>
-          <td>${escapeHtml(client.id)}</td>
+          <td style="font-weight:500; color:var(--text);">${escapeHtml(client.name)}</td>
+          <td style="font-family:monospace;">${escapeHtml(client.id)}</td>
           <td></td>
           <td>${client.notes ? `<span class="tag">${escapeHtml(client.notes)}</span>` : ''}</td>
         `;
@@ -950,30 +875,12 @@
       renderTable();
     }
 
-    function exportData() {
-      const blob = new Blob([JSON.stringify(folders, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = 'techbugs-system-directory.json';
-      anchor.click();
-      URL.revokeObjectURL(url);
-    }
-
     async function signInWithGoogle() {
-      if (!firebaseAppReady) {
-        setLoginStatus('Firebase is not ready yet.', 'error');
-        return;
-      }
       setLoginStatus('Opening Google sign-in...');
       await signInWithPopup(auth, new GoogleAuthProvider());
     }
 
     async function signInWithEmail() {
-      if (!firebaseAppReady) {
-        setLoginStatus('Firebase is not ready yet.', 'error');
-        return;
-      }
       const email = authEmail.value.trim();
       const password = authPassword.value;
       if (!email || !password) {
@@ -985,10 +892,6 @@
     }
 
     async function createAccount() {
-      if (!firebaseAppReady) {
-        setLoginStatus('Firebase is not ready yet.', 'error');
-        return;
-      }
       const email = authEmail.value.trim();
       const password = authPassword.value;
       if (!email || !password) {
@@ -1013,20 +916,10 @@
       renderTable();
       showLogin();
 
-      if (firebaseAppReady) return;
-
-      const firebaseConfig = getFirebaseConfig();
-      if (!firebaseConfig) {
-        setLoginStatus('Firebase is ready. Sign in to use your synced directory.', 'error');
-        return;
-      }
-
-      const app = initializeApp(firebaseConfig);
+      const app = initializeApp(embeddedFirebaseConfig);
       auth = getAuth(app);
       db = getFirestore(app);
       await setPersistence(auth, browserLocalPersistence);
-      firebaseAppReady = true;
-      setLoginStatus('Firebase is ready. You can sign in now.', 'success');
 
       onAuthStateChanged(auth, async (user) => {
         activeUser = user;
@@ -1086,8 +979,6 @@
     });
 
     searchBox.addEventListener('input', renderTable);
-    document.getElementById('themeBtn').addEventListener('click', toggleTheme);
-    document.getElementById('exportBtn').addEventListener('click', exportData);
     document.getElementById('logoutBtn').addEventListener('click', logout);
     document.getElementById('clearBtn').addEventListener('click', resetForm);
     document.getElementById('moveLeftBtn').addEventListener('click', () => moveFolder(-1));
@@ -1095,6 +986,7 @@
     document.getElementById('addFolderBtn').addEventListener('click', addFolder);
     document.getElementById('renameFolderBtn').addEventListener('click', renameFolder);
     document.getElementById('deleteFolderBtn').addEventListener('click', deleteFolder);
+    
     document.getElementById('googleLoginBtn').addEventListener('click', async () => {
       try { await signInWithGoogle(); } catch (error) { setLoginStatus(error.message, 'error'); }
     });
@@ -1104,28 +996,6 @@
     document.getElementById('emailSignupBtn').addEventListener('click', async () => {
       try { await createAccount(); } catch (error) { setLoginStatus(error.message, 'error'); }
     });
-    document.getElementById('openSetupBtn').addEventListener('click', openSetup);
-    document.getElementById('setupAgainBtn').addEventListener('click', () => {
-      showLogin();
-      openSetup();
-    });
-    document.getElementById('closeSetupBtn').addEventListener('click', closeSetup);
-    document.getElementById('saveSetupBtn').addEventListener('click', async () => {
-      const config = readSetupForm();
-      if (!isValidConfig(config)) {
-        setLoginStatus('Please fill all Firebase setup boxes.', 'error');
-        return;
-      }
-      localStorage.setItem(FIREBASE_CONFIG_KEY, JSON.stringify(config));
-      setLoginStatus('Setup saved. Preparing Firebase...', 'success');
-      closeSetup();
-      await initializeFirebase();
-    });
-    document.getElementById('clearSetupBtn').addEventListener('click', () => {
-      localStorage.removeItem(FIREBASE_CONFIG_KEY);
-      setLoginStatus('Saved Firebase setup was cleared.', 'success');
-      openSetup();
-    });
     authPassword.addEventListener('keydown', async (event) => {
       if (event.key === 'Enter') {
         event.preventDefault();
@@ -1133,8 +1003,6 @@
       }
     });
 
-    setTheme();
-    showLogin();
     initializeFirebase();
   </script>
 </body>
