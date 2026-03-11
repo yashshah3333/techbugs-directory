@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -120,8 +120,7 @@
     .toolbar,
     .folder-row,
     .header-actions,
-    .meta-row,
-    .table-actions {
+    .meta-row {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
@@ -329,17 +328,39 @@
       font-size: 12px;
     }
 
+    .table-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+
     .table-actions button {
-      width: 34px;
-      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
       padding: 0;
       background: rgba(255, 255, 255, 0.04);
       color: var(--text);
       border: 1px solid transparent;
+      border-radius: 8px;
     }
 
-    .table-actions button:hover {
+    .table-actions button svg {
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+    }
+
+    .table-actions button:hover:not(:disabled) {
       border-color: var(--border-strong);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .table-actions button:disabled {
+      cursor: not-allowed;
+      opacity: 0.3;
     }
 
     .footer {
@@ -361,8 +382,8 @@
   <section class="login-shell" id="loginShell">
     <div class="login-card">
       <div class="eyebrow">Cloud Sync</div>
-      <h2>Sign in to sync your saved endpoints</h2>
-      <p class="muted">Use Google for one-tap login or create your own email/password account. Each signed-in user gets their own synced endpoint list across devices.</p>
+      <h2>Sign in to sync endpoints</h2>
+      <p class="muted">Access your RustDesk directory securely across all your devices.</p>
       <div class="auth-stack">
         <button class="btn-primary" type="button" id="googleLoginBtn">Continue with Google</button>
         <input type="text" id="authEmail" placeholder="Email address">
@@ -373,13 +394,12 @@
         </div>
         <div class="auth-stack" style="flex-direction: row;">
           <button class="btn-secondary" type="button" id="openSetupBtn" style="flex: 1;">Firebase Setup</button>
-          <button class="btn-secondary" type="button" id="clearSetupBtn" style="flex: 1;">Clear Saved Setup</button>
+          <button class="btn-secondary" type="button" id="clearSetupBtn" style="flex: 1;">Clear Setup</button>
         </div>
         <div class="status" id="loginStatus"></div>
       </div>
       <div class="setup-box" id="setupBox">
         <h3>Firebase Project Setup</h3>
-        <p class="muted">Paste your Firebase app details here once. The page will save them for you.</p>
         <div class="setup-grid">
           <div class="field"><label for="cfgApiKey">API Key</label><input type="text" id="cfgApiKey"></div>
           <div class="field"><label for="cfgAuthDomain">Auth Domain</label><input type="text" id="cfgAuthDomain" placeholder="your-project.firebaseapp.com"></div>
@@ -388,8 +408,8 @@
           <div class="field"><label for="cfgMessagingSenderId">Messaging Sender ID</label><input type="text" id="cfgMessagingSenderId"></div>
           <div class="field"><label for="cfgAppId">App ID</label><input type="text" id="cfgAppId"></div>
         </div>
-        <div class="auth-stack" style="flex-direction: row;">
-          <button class="btn-primary" type="button" id="saveSetupBtn" style="flex: 1;">Save Setup</button>
+        <div class="auth-stack" style="flex-direction: row; margin-top: 8px;">
+          <button class="btn-primary" type="button" id="saveSetupBtn" style="flex: 1;">Save</button>
           <button class="btn-secondary" type="button" id="closeSetupBtn" style="flex: 1;">Close</button>
         </div>
       </div>
@@ -401,7 +421,6 @@
       <div class="title-block">
         <div class="eyebrow">TechBugs</div>
         <h1>System Directory</h1>
-        <p class="muted">Your RustDesk endpoints now sync from Firestore instead of living only in local browser storage.</p>
       </div>
       <div class="header-actions">
         <div class="pill"><span id="userEmail">Not signed in</span><span>•</span><span id="syncStatus">Waiting</span></div>
@@ -496,6 +515,16 @@
       { name: 'Workplace 1', clients: [] },
       { name: 'Workplace 2', clients: [] }
     ];
+
+    // Clean, modern SVG icons
+    const ICONS = {
+      connect: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
+      edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>',
+      eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+      delete: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>',
+      up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>',
+      down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>'
+    };
 
     const embeddedFirebaseConfig = {
       apiKey: 'AIzaSyCKYXqwaY9wtZtDqdxPKelC46AbM5WaBGc',
@@ -714,21 +743,51 @@
 
         const connectBtn = document.createElement('button');
         connectBtn.type = 'button';
-        connectBtn.textContent = '?';
+        connectBtn.innerHTML = ICONS.connect;
         connectBtn.title = 'Connect';
         connectBtn.addEventListener('click', () => {
           if (client.id) window.location.href = `rustdesk://${encodeURIComponent(client.id)}`;
         });
 
+        const upBtn = document.createElement('button');
+        upBtn.type = 'button';
+        upBtn.innerHTML = ICONS.up;
+        upBtn.title = 'Move Up';
+        upBtn.disabled = index === 0 || query !== ''; // Disable if searching or at top
+        upBtn.addEventListener('click', async () => {
+          if (index > 0 && !query) {
+            [folder.clients[index], folder.clients[index - 1]] = [folder.clients[index - 1], folder.clients[index]];
+            if (editIndex === index) editIndex = index - 1;
+            else if (editIndex === index - 1) editIndex = index;
+            await persistFolders();
+            renderTable();
+          }
+        });
+
+        const downBtn = document.createElement('button');
+        downBtn.type = 'button';
+        downBtn.innerHTML = ICONS.down;
+        downBtn.title = 'Move Down';
+        downBtn.disabled = index === folder.clients.length - 1 || query !== ''; // Disable if searching or at bottom
+        downBtn.addEventListener('click', async () => {
+          if (index < folder.clients.length - 1 && !query) {
+            [folder.clients[index], folder.clients[index + 1]] = [folder.clients[index + 1], folder.clients[index]];
+            if (editIndex === index) editIndex = index + 1;
+            else if (editIndex === index + 1) editIndex = index;
+            await persistFolders();
+            renderTable();
+          }
+        });
+
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
-        editBtn.textContent = '?';
+        editBtn.innerHTML = ICONS.edit;
         editBtn.title = 'Edit';
         editBtn.addEventListener('click', () => loadIntoForm(index));
 
         const eyeBtn = document.createElement('button');
         eyeBtn.type = 'button';
-        eyeBtn.textContent = '??';
+        eyeBtn.innerHTML = ICONS.eye;
         eyeBtn.title = 'Show password';
         eyeBtn.addEventListener('mousedown', () => togglePasswordCell(passwordCell, true));
         eyeBtn.addEventListener('mouseup', () => togglePasswordCell(passwordCell, false));
@@ -736,7 +795,7 @@
 
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
-        deleteBtn.textContent = '?';
+        deleteBtn.innerHTML = ICONS.delete;
         deleteBtn.title = 'Delete';
         deleteBtn.addEventListener('click', async () => {
           if (!confirm(`Delete "${client.name || client.id}" from "${folder.name}"?`)) return;
@@ -746,7 +805,7 @@
           renderTable();
         });
 
-        actionWrap.append(connectBtn, editBtn, eyeBtn, deleteBtn);
+        actionWrap.append(connectBtn, upBtn, downBtn, editBtn, eyeBtn, deleteBtn);
         actions.appendChild(actionWrap);
 
         row.innerHTML = `
@@ -1080,16 +1139,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
