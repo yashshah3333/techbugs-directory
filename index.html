@@ -10,12 +10,12 @@
   <style>
     :root {
       --font: 'Inter', system-ui, -apple-system, sans-serif;
-      --bg: #09090b; /* Very deep zinc */
-      --surface: rgba(24, 24, 27, 0.65); /* Translucent dark glass */
+      --bg: #09090b; 
+      --surface: rgba(24, 24, 27, 0.65); 
       --surface-hover: rgba(39, 39, 42, 0.8);
       --border: rgba(255, 255, 255, 0.1); 
       --border-focus: rgba(255, 255, 255, 0.3);
-      --primary-bg: #ffffff; /* Stark white for dark mode buttons */
+      --primary-bg: #ffffff; 
       --primary-text: #000000;
       --primary-hover: #e4e4e7;
       --danger: #ef4444;
@@ -29,15 +29,15 @@
     }
 
     body.light-mode {
-      --bg: #f4f5f7; /* TickTick's soothing off-white/gray */
-      --surface: rgba(255, 255, 255, 0.85); /* Frosty but glare-free */
+      --bg: #f4f5f7; 
+      --surface: rgba(255, 255, 255, 0.85); 
       --surface-hover: rgba(255, 255, 255, 1);
       --border: rgba(0, 0, 0, 0.06); 
       --border-focus: rgba(0, 0, 0, 0.2);
-      --primary-bg: #2a2a2a; /* Softer black to reduce contrast strain */
+      --primary-bg: #2a2a2a; 
       --primary-text: #ffffff;
       --primary-hover: #000000;
-      --text: #242424; /* TickTick's dark gray text instead of pure black */
+      --text: #242424; 
       --text-muted: #737373; 
       --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.04);
     }
@@ -590,8 +590,13 @@
       }));
     }
 
-    function readLegacyLocalData() {
-      const raw = localStorage.getItem(STORAGE_KEY);
+    // MULTI-USER FIX: Make local storage unique to the logged-in user
+    function getStorageKey() {
+      return activeUser ? `rustdesk_v1_${activeUser.uid}` : STORAGE_KEY;
+    }
+
+    function readLocalData() {
+      const raw = localStorage.getItem(getStorageKey());
       if (!raw) return null;
       try {
         return sanitizeFolders(JSON.parse(raw));
@@ -601,7 +606,7 @@
     }
 
     function cacheFolders() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(folders));
+      localStorage.setItem(getStorageKey(), JSON.stringify(folders));
     }
 
     function currentFolder() {
@@ -742,276 +747,4 @@
         actions.appendChild(actionWrap);
 
         row.innerHTML = `
-          <td style="font-weight:500; color:var(--text);">${escapeHtml(client.name)}</td>
-          <td style="font-family:monospace;">${escapeHtml(client.id)}</td>
-          <td></td>
-          <td>${client.notes ? `<span class="tag">${escapeHtml(client.notes)}</span>` : ''}</td>
-        `;
-        row.children[2].replaceWith(passwordCell);
-        row.appendChild(actions);
-        clientsBody.appendChild(row);
-      });
-    }
-
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
-    }
-
-    function resetForm() {
-      clientName.value = '';
-      clientId.value = '';
-      clientPassword.value = '';
-      clientNotes.value = '';
-      editIndex = null;
-      modeTag.textContent = 'New entry';
-    }
-
-    function loadIntoForm(index) {
-      const client = currentFolder()?.clients[index];
-      if (!client) return;
-      editIndex = index;
-      clientName.value = client.name;
-      clientId.value = client.id;
-      clientPassword.value = client.password;
-      clientNotes.value = client.notes;
-      modeTag.textContent = `Editing #${index + 1}`;
-      clientName.focus();
-    }
-
-    async function persistFolders() {
-      cacheFolders();
-      if (!activeUser || !db || applyingRemoteState) return;
-
-      const payloadHash = JSON.stringify(folders);
-      if (payloadHash === lastSavedHash) return;
-
-      lastSavedHash = payloadHash;
-      setSyncStatus('Syncing...');
-      await setDoc(doc(db, 'directories', activeUser.uid), {
-        folders,
-        ownerEmail: activeUser.email || '',
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-      setSyncStatus('Synced');
-    }
-
-    async function bootstrapUserData(user) {
-      const docRef = doc(db, 'directories', user.uid);
-      const snapshot = await getDoc(docRef);
-      const remoteFolders = snapshot.exists() ? sanitizeFolders(snapshot.data().folders) : null;
-      const legacyFolders = readLegacyLocalData();
-
-      folders = remoteFolders || legacyFolders || cloneDefaultFolders();
-      cacheFolders();
-      await persistFolders();
-    }
-
-    function subscribeToDirectory(user) {
-      if (unsubscribeSnapshot) unsubscribeSnapshot();
-      unsubscribeSnapshot = onSnapshot(doc(db, 'directories', user.uid), (snapshot) => {
-        if (!snapshot.exists()) return;
-        const nextFolders = sanitizeFolders(snapshot.data().folders);
-        const nextHash = JSON.stringify(nextFolders);
-        if (nextHash === JSON.stringify(folders)) {
-          lastSavedHash = nextHash;
-          setSyncStatus('Synced');
-          return;
-        }
-
-        applyingRemoteState = true;
-        folders = nextFolders;
-        lastSavedHash = nextHash;
-        if (currentFolderIndex >= folders.length) currentFolderIndex = 0;
-        cacheFolders();
-        resetForm();
-        renderFolders();
-        renderTable();
-        applyingRemoteState = false;
-        setSyncStatus('Synced');
-      });
-    }
-
-    async function moveFolder(direction) {
-      const nextIndex = currentFolderIndex + direction;
-      if (nextIndex < 0 || nextIndex >= folders.length) return;
-      [folders[currentFolderIndex], folders[nextIndex]] = [folders[nextIndex], folders[currentFolderIndex]];
-      currentFolderIndex = nextIndex;
-      await persistFolders();
-      renderFolders();
-      renderTable();
-    }
-
-    async function addFolder() {
-      const name = prompt('Folder name (e.g. Workplace A):');
-      if (!name) return;
-      folders.push({ name: name.trim(), clients: [] });
-      currentFolderIndex = folders.length - 1;
-      await persistFolders();
-      renderFolders();
-      renderTable();
-    }
-
-    async function renameFolder() {
-      const folder = currentFolder();
-      if (!folder) return;
-      const name = prompt('New folder name:', folder.name);
-      if (!name) return;
-      folder.name = name.trim();
-      await persistFolders();
-      renderFolders();
-      renderTable();
-    }
-
-    async function deleteFolder() {
-      if (folders.length <= 1) {
-        alert('At least one folder is required.');
-        return;
-      }
-      const folder = currentFolder();
-      if (!folder) return;
-      if (!confirm(`Delete folder "${folder.name}" and all its clients?`)) return;
-      folders.splice(currentFolderIndex, 1);
-      if (currentFolderIndex >= folders.length) currentFolderIndex = folders.length - 1;
-      resetForm();
-      await persistFolders();
-      renderFolders();
-      renderTable();
-    }
-
-    async function signInWithGoogle() {
-      setLoginStatus('Opening Google sign-in...');
-      await signInWithPopup(auth, new GoogleAuthProvider());
-    }
-
-    async function signInWithEmail() {
-      const email = authEmail.value.trim();
-      const password = authPassword.value;
-      if (!email || !password) {
-        setLoginStatus('Enter your email and password first.', 'error');
-        return;
-      }
-      setLoginStatus('Signing you in...');
-      await signInWithEmailAndPassword(auth, email, password);
-    }
-
-    async function createAccount() {
-      const email = authEmail.value.trim();
-      const password = authPassword.value;
-      if (!email || !password) {
-        setLoginStatus('Enter an email and password to create the account.', 'error');
-        return;
-      }
-      if (password.length < 6) {
-        setLoginStatus('Password must be at least 6 characters.', 'error');
-        return;
-      }
-      setLoginStatus('Creating your account...');
-      await createUserWithEmailAndPassword(auth, email, password);
-    }
-
-    async function logout() {
-      if (auth) await signOut(auth);
-    }
-
-    async function initializeFirebase() {
-      folders = readLegacyLocalData() || cloneDefaultFolders();
-      renderFolders();
-      renderTable();
-      showLogin();
-
-      const app = initializeApp(embeddedFirebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-      await setPersistence(auth, browserLocalPersistence);
-
-      onAuthStateChanged(auth, async (user) => {
-        activeUser = user;
-
-        if (!user) {
-          if (unsubscribeSnapshot) {
-            unsubscribeSnapshot();
-            unsubscribeSnapshot = null;
-          }
-          userEmail.textContent = 'Not signed in';
-          setSyncStatus('Waiting');
-          showLogin();
-          return;
-        }
-
-        userEmail.textContent = user.email || 'Google account';
-        setSyncStatus('Loading...');
-        await bootstrapUserData(user);
-        subscribeToDirectory(user);
-        renderFolders();
-        renderTable();
-        setSyncStatus('Synced');
-        setLoginStatus('', 'success');
-        showApp();
-      });
-    }
-
-    document.getElementById('clientForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const folder = currentFolder();
-      if (!folder) {
-        alert('Create a folder first.');
-        return;
-      }
-
-      const name = clientName.value.trim();
-      const id = clientId.value.trim();
-      const password = clientPassword.value.trim();
-      const notes = clientNotes.value.trim();
-
-      if (!name || !id) {
-        alert('Client name and ID are required.');
-        return;
-      }
-
-      const payload = { name, id, password, notes };
-      if (editIndex === null) {
-        folder.clients.push(payload);
-      } else {
-        folder.clients[editIndex] = payload;
-      }
-
-      await persistFolders();
-      resetForm();
-      renderTable();
-      clientName.focus();
-    });
-
-    searchBox.addEventListener('input', renderTable);
-    document.getElementById('logoutBtn').addEventListener('click', logout);
-    document.getElementById('clearBtn').addEventListener('click', resetForm);
-    document.getElementById('moveLeftBtn').addEventListener('click', () => moveFolder(-1));
-    document.getElementById('moveRightBtn').addEventListener('click', () => moveFolder(1));
-    document.getElementById('addFolderBtn').addEventListener('click', addFolder);
-    document.getElementById('renameFolderBtn').addEventListener('click', renameFolder);
-    document.getElementById('deleteFolderBtn').addEventListener('click', deleteFolder);
-    
-    document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-      try { await signInWithGoogle(); } catch (error) { setLoginStatus(error.message, 'error'); }
-    });
-    document.getElementById('emailLoginBtn').addEventListener('click', async () => {
-      try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); }
-    });
-    document.getElementById('emailSignupBtn').addEventListener('click', async () => {
-      try { await createAccount(); } catch (error) { setLoginStatus(error.message, 'error'); }
-    });
-    authPassword.addEventListener('keydown', async (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); }
-      }
-    });
-
-    initializeFirebase();
-  </script>
-</body>
-</html>
+          <td style="font-weight:500; color:var(--text);
