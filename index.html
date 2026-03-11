@@ -474,10 +474,9 @@
     function openModal(title, desc, isPrompt = false, defaultVal = '') {
       return new Promise((resolve) => {
         const overlay = document.getElementById('modalOverlay');
-        if(!overlay) { resolve(isPrompt ? prompt(desc, defaultVal) : confirm(desc)); return; }
-        
         document.getElementById('modalTitle').textContent = title;
         document.getElementById('modalDesc').textContent = desc;
+        
         const inputEl = document.getElementById('modalInput');
         inputEl.style.display = isPrompt ? 'block' : 'none';
         inputEl.value = defaultVal;
@@ -487,8 +486,15 @@
 
         const cleanup = () => { overlay.style.display = 'none'; };
 
-        document.getElementById('modalConfirm').onclick = () => { cleanup(); resolve(isPrompt ? inputEl.value : true); };
-        document.getElementById('modalCancel').onclick = () => { cleanup(); resolve(null); };
+        document.getElementById('modalConfirm').onclick = () => {
+          cleanup();
+          resolve(isPrompt ? inputEl.value : true);
+        };
+        
+        document.getElementById('modalCancel').onclick = () => {
+          cleanup();
+          resolve(null);
+        };
       });
     }
 
@@ -520,8 +526,7 @@
     }
 
     function setSyncStatus(message) {
-      const ss = document.getElementById('syncStatus');
-      if (ss) ss.textContent = message;
+      document.getElementById('syncStatus').textContent = message;
     }
 
     // --- Form & Input Polish ---
@@ -537,8 +542,9 @@
         btn.innerHTML = ICONS.eye;
       }
     }
-    bindEvent('toggleAuthPass', 'click', () => togglePassVisibility('authPassword', 'toggleAuthPass'));
-    bindEvent('toggleClientPass', 'click', () => togglePassVisibility('clientPassword', 'toggleClientPass'));
+    
+    document.getElementById('toggleAuthPass').addEventListener('click', () => togglePassVisibility('authPassword', 'toggleAuthPass'));
+    document.getElementById('toggleClientPass').addEventListener('click', () => togglePassVisibility('clientPassword', 'toggleClientPass'));
 
     function copyToClipboard(text, type) {
       if (!text) return;
@@ -559,17 +565,13 @@
     function currentFolder() { return folders[currentFolderIndex]; }
     
     function showLogin() { 
-      const ls = document.getElementById('loginShell');
-      const as = document.getElementById('appShell');
-      if(ls) ls.style.display = 'flex'; 
-      if(as) as.style.display = 'none'; 
+      document.getElementById('loginShell').style.display = 'flex'; 
+      document.getElementById('appShell').style.display = 'none'; 
     }
     
     function showApp() { 
-      const ls = document.getElementById('loginShell');
-      const as = document.getElementById('appShell');
-      if(ls) ls.style.display = 'none'; 
-      if(as) as.style.display = 'flex'; 
+      document.getElementById('loginShell').style.display = 'none'; 
+      document.getElementById('appShell').style.display = 'flex'; 
     }
 
     function cloneDefaultFolders() { return JSON.parse(JSON.stringify(DEFAULT_FOLDERS)); }
@@ -587,7 +589,6 @@
 
     function renderFolders() {
       const pills = document.getElementById('folderPills');
-      if(!pills) return;
       pills.innerHTML = '';
       folders.forEach((folder, index) => {
         const btn = document.createElement('button');
@@ -596,20 +597,19 @@
         btn.textContent = folder.name;
         btn.addEventListener('click', () => {
           currentFolderIndex = index;
+          resetForm();
           renderFolders();
           renderTable();
         });
         pills.appendChild(btn);
       });
-      const fl = document.getElementById('folderLabel');
-      if(fl) fl.textContent = currentFolder()?.name || 'Endpoints';
+      document.getElementById('folderLabel').textContent = currentFolder()?.name || 'Endpoints';
     }
 
     function renderTable() {
       const cBody = document.getElementById('clientsBody');
       const searchBx = document.getElementById('searchBox');
-      if(!cBody || !searchBx) return;
-
+      
       cBody.innerHTML = '';
       const folder = currentFolder();
       if (!folder) return;
@@ -627,13 +627,23 @@
         passwordCell.innerHTML = `
           <div style="display:flex; align-items:center; gap:8px;">
             <span class="hidden-pass">••••••••</span><span class="real-pass" style="display:none"></span>
-            ${client.password ? `<button class="btn-icon-micro copy-btn" title="Copy Password">${ICONS.copy}</button>` : ''}
+            ${client.password ? `
+              <button class="btn-icon-micro eye-btn" title="Show password">${ICONS.eye}</button>
+              <button class="btn-icon-micro copy-btn" title="Copy Password">${ICONS.copy}</button>
+            ` : ''}
           </div>`;
         passwordCell.querySelector('.real-pass').textContent = client.password;
         
         const copyPassBtn = passwordCell.querySelector('.copy-btn');
         if (copyPassBtn) {
           copyPassBtn.addEventListener('click', () => copyToClipboard(client.password, 'Password'));
+        }
+
+        const eyeBtn = passwordCell.querySelector('.eye-btn');
+        if (eyeBtn) {
+          eyeBtn.addEventListener('mousedown', () => { passwordCell.querySelector('.hidden-pass').style.display = 'none'; passwordCell.querySelector('.real-pass').style.display = 'inline'; eyeBtn.innerHTML = ICONS.eyeOff; });
+          eyeBtn.addEventListener('mouseup', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; });
+          eyeBtn.addEventListener('mouseleave', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; });
         }
 
         // Actions
@@ -650,6 +660,7 @@
         upBtn.addEventListener('click', async () => {
           if (index > 0 && !query) {
             [folder.clients[index], folder.clients[index - 1]] = [folder.clients[index - 1], folder.clients[index]];
+            if (editIndex === index) editIndex = index - 1; else if (editIndex === index - 1) editIndex = index;
             await persistFolders(); renderTable();
           }
         });
@@ -659,6 +670,7 @@
         downBtn.addEventListener('click', async () => {
           if (index < folder.clients.length - 1 && !query) {
             [folder.clients[index], folder.clients[index + 1]] = [folder.clients[index + 1], folder.clients[index]];
+            if (editIndex === index) editIndex = index + 1; else if (editIndex === index + 1) editIndex = index;
             await persistFolders(); renderTable();
           }
         });
@@ -667,24 +679,19 @@
         editBtn.className = 'btn-action'; editBtn.innerHTML = ICONS.edit; editBtn.title = 'Edit';
         editBtn.addEventListener('click', () => loadIntoForm(index));
 
-        const eyeBtn = document.createElement('button');
-        eyeBtn.className = 'btn-action'; eyeBtn.innerHTML = ICONS.eye; eyeBtn.title = 'Show password';
-        eyeBtn.addEventListener('mousedown', () => { passwordCell.querySelector('.hidden-pass').style.display = 'none'; passwordCell.querySelector('.real-pass').style.display = 'inline'; });
-        eyeBtn.addEventListener('mouseup', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; });
-        eyeBtn.addEventListener('mouseleave', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; });
-
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn-action'; deleteBtn.style.color = 'var(--danger)'; deleteBtn.innerHTML = ICONS.delete; deleteBtn.title = 'Delete';
         deleteBtn.addEventListener('click', async () => {
           const confirmDel = await openModal('Delete Client', `Are you sure you want to delete "${client.name}"?`);
           if (!confirmDel) return;
           folder.clients.splice(index, 1);
+          if (editIndex === index) resetForm();
           await persistFolders();
           renderTable();
           showToast('Client deleted');
         });
 
-        actionWrap.append(connectBtn, upBtn, downBtn, editBtn, eyeBtn, deleteBtn);
+        actionWrap.append(connectBtn, upBtn, downBtn, editBtn, deleteBtn);
         actions.appendChild(actionWrap);
 
         // ID Cell setup (to attach copy event safely)
@@ -710,25 +717,14 @@
     function escapeHtml(value) { return String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
 
     function resetForm() {
-      const cName = document.getElementById('clientName');
-      if(cName) cName.value = ''; 
-      const cId = document.getElementById('clientId');
-      if(cId) cId.value = ''; 
-      const cPass = document.getElementById('clientPassword');
-      if(cPass) cPass.value = ''; 
-      const cNotes = document.getElementById('clientNotes');
-      if(cNotes) cNotes.value = '';
-      
+      document.getElementById('clientName').value = ''; 
+      document.getElementById('clientId').value = ''; 
+      document.getElementById('clientPassword').value = ''; 
+      document.getElementById('clientNotes').value = '';
       editIndex = null; 
-      
-      const mTag = document.getElementById('clientModalTitle');
-      if(mTag) mTag.textContent = 'Add Client';
-      
-      const mfWrap = document.getElementById('moveFolderWrap');
-      if(mfWrap) mfWrap.style.display = 'none';
-      
-      const scBtn = document.getElementById('saveClientBtn');
-      if(scBtn) scBtn.textContent = 'Save Client';
+      document.getElementById('clientModalTitle').textContent = 'Add Client';
+      document.getElementById('moveFolderWrap').style.display = 'none';
+      document.getElementById('saveClientBtn').textContent = 'Save Client';
     }
 
     function loadIntoForm(index) {
