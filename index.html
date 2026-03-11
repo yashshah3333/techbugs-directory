@@ -339,4 +339,622 @@
             <div class="input-wrapper">
               <input type="password" id="clientPassword" placeholder="Client password">
               <button type="button" class="icon-btn-absolute" id="toggleClientPass" title="Show password">
-                <svg viewBox="0 0
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="clientNotes">Notes / Tag</label>
+            <input type="text" id="clientNotes" placeholder="Win 10 | Shop PC">
+          </div>
+          <div class="field" id="moveFolderWrap" style="display:none;">
+            <label for="clientFolderSelect">Folder</label>
+            <select id="clientFolderSelect"></select>
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="btn-secondary" type="button" id="clearBtn">Clear</button>
+          <button class="btn-main" type="submit" id="saveClientBtn">Save Client</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card glass-panel">
+      <div class="card-header" style="margin-bottom:0;">
+        <div class="card-title" id="folderLabel">Endpoints</div>
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchBox" placeholder="Search clients or IDs...">
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:25%;">Client</th>
+              <th style="width:20%;">ID</th>
+              <th style="width:20%;">Password</th>
+              <th style="width:20%;">Notes</th>
+              <th style="width:15%;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="clientsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="footer">App developed by TechBugs IT Solutions (Yash Shah +91 7028533162) | Sync-enabled build version 1.0</div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, browserLocalPersistence, browserSessionPersistence, createUserWithEmailAndPassword, onAuthStateChanged, setPersistence, signInWithEmailAndPassword, signInWithPopup, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+    import { doc, getDoc, getFirestore, onSnapshot, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+    const STORAGE_KEY = 'rustdesk_clients_folders_v1';
+    const THEME_KEY = 'techbugs_theme';
+    const DEFAULT_FOLDERS = [{ name: 'Workplace 1', clients: [] }, { name: 'Workplace 2', clients: [] }];
+
+    const ICONS = {
+      connect: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
+      edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>',
+      eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+      eyeOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>',
+      delete: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>',
+      up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>',
+      down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>',
+      copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
+    };
+
+    const embeddedFirebaseConfig = {
+      apiKey: 'AIzaSyCKYXqwaY9wtZtDqdxPKelC46AbM5WaBGc',
+      authDomain: 'techbugs-directory.firebaseapp.com',
+      projectId: 'techbugs-directory',
+      storageBucket: 'techbugs-directory.firebasestorage.app',
+      messagingSenderId: '693496099094',
+      appId: '1:693496099094:web:0257ddf91b70c4fd756037'
+    };
+
+    let folders = [];
+    let currentFolderIndex = 0;
+    let editIndex = null;
+    let auth = null;
+    let db = null;
+    let activeUser = null;
+    let unsubscribeSnapshot = null;
+    let lastSavedHash = '';
+    let applyingRemoteState = false;
+
+    // --- Theme Logic (Runs Immediately) ---
+    if (localStorage.getItem(THEME_KEY) === 'light') document.body.classList.add('light-mode');
+    document.querySelectorAll('.theme-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+        localStorage.setItem(THEME_KEY, document.body.classList.contains('light-mode') ? 'light' : 'dark');
+      });
+    });
+
+    // --- Safe Event Binder Utility ---
+    // This prevents a single missing element from crashing the entire Javascript file
+    function bindEvent(id, eventType, callback) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener(eventType, callback);
+        }
+    }
+
+    // --- Custom UI Feedback (Toasts & Modals) ---
+    function showToast(msg, isError = false) {
+      const container = document.getElementById('toastContainer');
+      if(!container) return;
+      const toast = document.createElement('div');
+      toast.className = `toast ${isError ? 'error' : ''}`;
+      toast.innerHTML = isError 
+        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span>${msg}</span>`
+        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--border-focus)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function openModal(title, desc, isPrompt = false, defaultVal = '') {
+      return new Promise((resolve) => {
+        const overlay = document.getElementById('modalOverlay');
+        if(!overlay) { resolve(isPrompt ? prompt(desc, defaultVal) : confirm(desc)); return; }
+        
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalDesc').textContent = desc;
+        const inputEl = document.getElementById('modalInput');
+        inputEl.style.display = isPrompt ? 'block' : 'none';
+        inputEl.value = defaultVal;
+        overlay.style.display = 'flex';
+        if (isPrompt) inputEl.focus();
+
+        const cleanup = () => { overlay.style.display = 'none'; };
+
+        document.getElementById('modalConfirm').onclick = () => { cleanup(); resolve(isPrompt ? inputEl.value : true); };
+        document.getElementById('modalCancel').onclick = () => { cleanup(); resolve(null); };
+      });
+    }
+
+    function setLoginStatus(message, tone = '') {
+      const ls = document.getElementById('loginStatus');
+      if (ls) {
+          ls.textContent = message || '';
+          ls.className = `status${tone ? ` ${tone}` : ''}`;
+      }
+    }
+
+    function setSyncStatus(message) {
+      const ss = document.getElementById('syncStatus');
+      if (ss) ss.textContent = message;
+    }
+
+    // --- Form & Input Polish ---
+    function togglePassVisibility(inputId, btnId) {
+      const input = document.getElementById(inputId);
+      const btn = document.getElementById(btnId);
+      if(!input || !btn) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = ICONS.eyeOff;
+      } else {
+        input.type = 'password';
+        btn.innerHTML = ICONS.eye;
+      }
+    }
+    bindEvent('toggleAuthPass', 'click', () => togglePassVisibility('authPassword', 'toggleAuthPass'));
+    bindEvent('toggleClientPass', 'click', () => togglePassVisibility('clientPassword', 'toggleClientPass'));
+
+    function copyToClipboard(text, type) {
+      if (!text) return;
+      navigator.clipboard.writeText(text);
+      showToast(`${type} copied to clipboard`);
+    }
+
+    // --- Core Logic ---
+    function getStorageKey() { return activeUser ? `rustdesk_v1_${activeUser.uid}` : STORAGE_KEY; }
+
+    function readLocalData() {
+      try { return sanitizeFolders(JSON.parse(localStorage.getItem(getStorageKey()))); } 
+      catch { return null; }
+    }
+
+    function cacheFolders() { localStorage.setItem(getStorageKey(), JSON.stringify(folders)); }
+    function currentFolder() { return folders[currentFolderIndex]; }
+    
+    function showLogin() { 
+        if(document.getElementById('loginShell')) document.getElementById('loginShell').style.display = 'flex'; 
+        if(document.getElementById('appShell')) document.getElementById('appShell').style.display = 'none'; 
+    }
+    
+    function showApp() { 
+        if(document.getElementById('loginShell')) document.getElementById('loginShell').style.display = 'none'; 
+        if(document.getElementById('appShell')) document.getElementById('appShell').style.display = 'flex'; 
+        if(document.getElementById('clientName')) document.getElementById('clientName').focus(); 
+    }
+
+    function cloneDefaultFolders() { return JSON.parse(JSON.stringify(DEFAULT_FOLDERS)); }
+
+    function sanitizeFolders(value) {
+      if (!Array.isArray(value) || !value.length) return cloneDefaultFolders();
+      return value.map(folder => ({
+        name: String(folder?.name || 'Untitled Folder'),
+        clients: Array.isArray(folder?.clients) ? folder.clients.map(c => ({
+          name: String(c?.name || ''), id: String(c?.id || ''),
+          password: String(c?.password || ''), notes: String(c?.notes || '')
+        })) : []
+      }));
+    }
+
+    function renderFolders() {
+      const pills = document.getElementById('folderPills');
+      if(!pills) return;
+      pills.innerHTML = '';
+      folders.forEach((folder, index) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `folder-pill${index === currentFolderIndex ? ' active' : ''}`;
+        btn.textContent = folder.name;
+        btn.addEventListener('click', () => {
+          currentFolderIndex = index;
+          resetForm();
+          renderFolders();
+          renderTable();
+        });
+        pills.appendChild(btn);
+      });
+      const fl = document.getElementById('folderLabel');
+      if(fl) fl.textContent = currentFolder()?.name || 'Endpoints';
+    }
+
+    function renderTable() {
+      const cBody = document.getElementById('clientsBody');
+      const searchBx = document.getElementById('searchBox');
+      if(!cBody || !searchBx) return;
+
+      cBody.innerHTML = '';
+      const folder = currentFolder();
+      if (!folder) return;
+
+      const query = searchBx.value.trim().toLowerCase();
+      const filtered = query ? folder.clients.filter(c => c.name.toLowerCase().includes(query) || c.id.toLowerCase().includes(query)) : folder.clients;
+
+      filtered.forEach((client) => {
+        const index = folder.clients.indexOf(client);
+        const row = document.createElement('tr');
+
+        const passwordCell = document.createElement('td');
+        passwordCell.style.fontFamily = "monospace";
+        passwordCell.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="hidden-pass">••••••••</span><span class="real-pass" style="display:none"></span>
+            ${client.password ? `<button class="btn-icon-micro" title="Copy Password">${ICONS.copy}</button>` : ''}
+          </div>`;
+        passwordCell.querySelector('.real-pass').textContent = client.password;
+        if(client.password) {
+          passwordCell.querySelector('.btn-icon-micro').addEventListener('click', () => copyToClipboard(client.password, 'Password'));
+        }
+
+        const actions = document.createElement('td');
+        const actionWrap = document.createElement('div');
+        actionWrap.className = 'table-actions';
+
+        const connectBtn = document.createElement('button');
+        connectBtn.className = 'btn-action'; connectBtn.innerHTML = ICONS.connect; connectBtn.title = 'Connect';
+        connectBtn.addEventListener('click', () => { if (client.id) window.location.href = `rustdesk://${encodeURIComponent(client.id.replace(/\s+/g, ''))}`; });
+
+        const upBtn = document.createElement('button');
+        upBtn.className = 'btn-action'; upBtn.innerHTML = ICONS.up; upBtn.disabled = index === 0 || query !== '';
+        upBtn.addEventListener('click', async () => {
+          if (index > 0 && !query) {
+            [folder.clients[index], folder.clients[index - 1]] = [folder.clients[index - 1], folder.clients[index]];
+            if (editIndex === index) editIndex = index - 1; else if (editIndex === index - 1) editIndex = index;
+            await persistFolders(); renderTable();
+          }
+        });
+
+        const downBtn = document.createElement('button');
+        downBtn.className = 'btn-action'; downBtn.innerHTML = ICONS.down; downBtn.disabled = index === folder.clients.length - 1 || query !== '';
+        downBtn.addEventListener('click', async () => {
+          if (index < folder.clients.length - 1 && !query) {
+            [folder.clients[index], folder.clients[index + 1]] = [folder.clients[index + 1], folder.clients[index]];
+            if (editIndex === index) editIndex = index + 1; else if (editIndex === index + 1) editIndex = index;
+            await persistFolders(); renderTable();
+          }
+        });
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn-action'; editBtn.innerHTML = ICONS.edit; editBtn.title = 'Edit';
+        editBtn.addEventListener('click', () => loadIntoForm(index));
+
+        const eyeBtn = document.createElement('button');
+        eyeBtn.className = 'btn-action'; eyeBtn.innerHTML = ICONS.eye; eyeBtn.title = 'Show password';
+        eyeBtn.addEventListener('mousedown', () => { passwordCell.querySelector('.hidden-pass').style.display = 'none'; passwordCell.querySelector('.real-pass').style.display = 'inline'; });
+        eyeBtn.addEventListener('mouseup', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; });
+        eyeBtn.addEventListener('mouseleave', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; });
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-action'; deleteBtn.style.color = 'var(--danger)'; deleteBtn.innerHTML = ICONS.delete; deleteBtn.title = 'Delete';
+        deleteBtn.addEventListener('click', async () => {
+          const confirmDel = await openModal('Delete Client', `Are you sure you want to delete "${client.name}"?`);
+          if (!confirmDel) return;
+          folder.clients.splice(index, 1);
+          if (editIndex === index) resetForm();
+          await persistFolders();
+          renderTable();
+          showToast('Client deleted');
+        });
+
+        actionWrap.append(connectBtn, upBtn, downBtn, editBtn, eyeBtn, deleteBtn);
+        actions.appendChild(actionWrap);
+
+        row.innerHTML = `
+          <td style="font-weight:500; color:var(--text);">${escapeHtml(client.name)}</td>
+          <td style="font-family:monospace;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              ${escapeHtml(client.id)}
+              <button class="btn-icon-micro" title="Copy ID" onclick="navigator.clipboard.writeText('${client.id.replace(/'/g, "\\'")}'); document.getElementById('toastContainer').appendChild(Object.assign(document.createElement('div'),{className:'toast',innerHTML:'<span>ID copied to clipboard</span>', style:'animation:slideIn 0.3s forwards'})); setTimeout(()=>document.getElementById('toastContainer').lastChild.remove(), 3500);">${ICONS.copy}</button>
+            </div>
+          </td>
+          <td></td>
+          <td>${client.notes ? `<span class="tag">${escapeHtml(client.notes)}</span>` : ''}</td>
+        `;
+        row.children[2].replaceWith(passwordCell);
+        row.appendChild(actions);
+        cBody.appendChild(row);
+      });
+    }
+
+    function escapeHtml(value) { return String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
+
+    function resetForm() {
+      if(document.getElementById('clientName')) document.getElementById('clientName').value = ''; 
+      if(document.getElementById('clientId')) document.getElementById('clientId').value = ''; 
+      if(document.getElementById('clientPassword')) document.getElementById('clientPassword').value = ''; 
+      if(document.getElementById('clientNotes')) document.getElementById('clientNotes').value = '';
+      editIndex = null; 
+      if(document.getElementById('modeTag')) document.getElementById('modeTag').textContent = 'New entry';
+      if(document.getElementById('moveFolderWrap')) document.getElementById('moveFolderWrap').style.display = 'none';
+      if(document.getElementById('saveClientBtn')) document.getElementById('saveClientBtn').textContent = 'Save Client';
+    }
+
+    function loadIntoForm(index) {
+      const client = currentFolder()?.clients[index];
+      if (!client) return;
+      editIndex = index;
+      document.getElementById('clientName').value = client.name; 
+      document.getElementById('clientId').value = client.id;
+      document.getElementById('clientPassword').value = client.password; 
+      document.getElementById('clientNotes').value = client.notes;
+      document.getElementById('modeTag').textContent = `Editing #${index + 1}`;
+      document.getElementById('saveClientBtn').textContent = 'Update Client';
+      
+      const cfs = document.getElementById('clientFolderSelect');
+      if(cfs) {
+          cfs.innerHTML = '';
+          folders.forEach((f, i) => {
+            const opt = document.createElement('option');
+            opt.value = i; opt.textContent = f.name;
+            if(i === currentFolderIndex) opt.selected = true;
+            cfs.appendChild(opt);
+          });
+      }
+      document.getElementById('moveFolderWrap').style.display = 'flex';
+      document.getElementById('clientName').focus();
+    }
+
+    async function persistFolders() {
+      cacheFolders();
+      if (!activeUser || !db || applyingRemoteState) return;
+      const payloadHash = JSON.stringify(folders);
+      if (payloadHash === lastSavedHash) return;
+
+      lastSavedHash = payloadHash;
+      setSyncStatus('Syncing...');
+      await setDoc(doc(db, 'directories', activeUser.uid), { folders, ownerEmail: activeUser.email || '', updatedAt: serverTimestamp() }, { merge: true });
+      setSyncStatus('Synced');
+    }
+
+    async function bootstrapUserData(user) {
+      const docRef = doc(db, 'directories', user.uid);
+      const snapshot = await getDoc(docRef);
+      const remoteFolders = snapshot.exists() ? sanitizeFolders(snapshot.data().folders) : null;
+      const localFolders = readLocalData(); 
+      folders = remoteFolders || localFolders || cloneDefaultFolders();
+      cacheFolders();
+      await persistFolders();
+    }
+
+    function subscribeToDirectory(user) {
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+      unsubscribeSnapshot = onSnapshot(doc(db, 'directories', user.uid), (snapshot) => {
+        if (!snapshot.exists()) return;
+        const nextFolders = sanitizeFolders(snapshot.data().folders);
+        const nextHash = JSON.stringify(nextFolders);
+        if (nextHash === JSON.stringify(folders)) { lastSavedHash = nextHash; setSyncStatus('Synced'); return; }
+        applyingRemoteState = true;
+        folders = nextFolders; lastSavedHash = nextHash;
+        if (currentFolderIndex >= folders.length) currentFolderIndex = 0;
+        cacheFolders(); resetForm(); renderFolders(); renderTable();
+        applyingRemoteState = false; setSyncStatus('Synced');
+      });
+    }
+
+    async function moveFolder(direction) {
+      const nextIndex = currentFolderIndex + direction;
+      if (nextIndex < 0 || nextIndex >= folders.length) return;
+      [folders[currentFolderIndex], folders[nextIndex]] = [folders[nextIndex], folders[currentFolderIndex]];
+      currentFolderIndex = nextIndex; await persistFolders(); renderFolders(); renderTable();
+    }
+
+    async function addFolder() {
+      const name = await openModal('New Folder', 'Enter a name for the new folder:', true);
+      if (!name || !name.trim()) return;
+      folders.push({ name: name.trim(), clients: [] });
+      currentFolderIndex = folders.length - 1;
+      await persistFolders(); renderFolders(); renderTable(); showToast('Folder created');
+    }
+
+    async function renameFolder() {
+      const cf = currentFolder(); if (!cf) return;
+      const name = await openModal('Rename Folder', 'Enter a new name:', true, cf.name);
+      if (!name || !name.trim()) return;
+      cf.name = name.trim();
+      await persistFolders(); renderFolders(); renderTable(); showToast('Folder renamed');
+    }
+
+    async function deleteFolder() {
+      if (folders.length <= 1) { showToast('At least one folder is required.', true); return; }
+      const cf = currentFolder(); if (!cf) return;
+      const confirmed = await openModal('Delete Folder', `Are you sure you want to delete "${cf.name}" and all its clients?`);
+      if (!confirmed) return;
+      folders.splice(currentFolderIndex, 1);
+      if (currentFolderIndex >= folders.length) currentFolderIndex = folders.length - 1;
+      resetForm(); await persistFolders(); renderFolders(); renderTable(); showToast('Folder deleted');
+    }
+
+    // --- Form Submission (Validation + Trim) ---
+    bindEvent('clientForm', 'submit', async (event) => {
+      event.preventDefault();
+      const folder = currentFolder();
+      if (!folder) { showToast('Create a folder first.', true); return; }
+
+      const name = document.getElementById('clientName').value.trim();
+      const id = document.getElementById('clientId').value.trim(); 
+      const password = document.getElementById('clientPassword').value.trim();
+      const notes = document.getElementById('clientNotes').value.trim();
+
+      if (!name || !id) { showToast('Client Name and ID are required.', true); return; }
+
+      const isDup = folder.clients.some((c, i) => i !== editIndex && (c.id === id || c.name === name));
+      if (isDup) { showToast('A client with this Name or ID already exists here.', true); return; }
+
+      const payload = { name, id, password, notes };
+      
+      if (editIndex === null) {
+        folder.clients.push(payload);
+        showToast('Client saved');
+      } else {
+        const targetFolderIdx = parseInt(document.getElementById('clientFolderSelect').value);
+        if (targetFolderIdx !== currentFolderIndex) {
+          folders[targetFolderIdx].clients.push(payload);
+          folder.clients.splice(editIndex, 1);
+          showToast(`Client moved to ${folders[targetFolderIdx].name}`);
+        } else {
+          folder.clients[editIndex] = payload;
+          showToast('Client updated');
+        }
+      }
+
+      await persistFolders();
+      resetForm();
+      renderTable();
+      document.getElementById('clientName').focus();
+    });
+
+    // --- Direct Execution Authentication Methods ---
+    
+    // Updates persistence based on checkbox WITHOUT awaiting or wrapping the popups
+    bindEvent('keepSignedIn', 'change', (e) => {
+        if(auth) {
+            setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence).catch(console.error);
+        }
+    });
+
+    bindEvent('googleLoginBtn', 'click', () => {
+      const btn = document.getElementById('googleLoginBtn');
+      const originalHTML = btn.innerHTML;
+      btn.textContent = 'Loading...';
+      btn.disabled = true;
+      setLoginStatus('Opening Google sign-in...');
+      
+      signInWithPopup(auth, new GoogleAuthProvider()).catch(error => {
+        setLoginStatus(error.message, 'error');
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+      });
+    });
+
+    bindEvent('emailLoginBtn', 'click', () => {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      if (!email || !password) { setLoginStatus('Enter email and password.', 'error'); return; }
+
+      const btn = document.getElementById('emailLoginBtn');
+      const originalText = btn.textContent;
+      btn.textContent = 'Loading...';
+      btn.disabled = true;
+      setLoginStatus('Signing you in...');
+
+      signInWithEmailAndPassword(auth, email, password).catch(error => {
+        setLoginStatus(error.message, 'error');
+        btn.textContent = originalText;
+        btn.disabled = false;
+      });
+    });
+
+    bindEvent('emailSignupBtn', 'click', () => {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      if (!email || !password) { setLoginStatus('Enter email and password.', 'error'); return; }
+      if (password.length < 6) { setLoginStatus('Password must be 6+ chars.', 'error'); return; }
+
+      const btn = document.getElementById('emailSignupBtn');
+      const originalText = btn.textContent;
+      btn.textContent = 'Loading...';
+      btn.disabled = true;
+      setLoginStatus('Creating your account...');
+
+      createUserWithEmailAndPassword(auth, email, password).catch(error => {
+        setLoginStatus(error.message, 'error');
+        btn.textContent = originalText;
+        btn.disabled = false;
+      });
+    });
+
+    bindEvent('forgotPassBtn', 'click', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value.trim();
+      if (!email) { setLoginStatus('Enter your email in the box first to reset password.', 'error'); return; }
+      sendPasswordResetEmail(auth, email)
+        .then(() => setLoginStatus('Password reset email sent!', 'success'))
+        .catch((error) => setLoginStatus(error.message, 'error'));
+    });
+
+    bindEvent('authPassword', 'keydown', (e) => { 
+        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('emailLoginBtn').click(); } 
+    });
+
+    async function logout() {
+      const lBtn = document.getElementById('logoutBtn');
+      if(lBtn) lBtn.textContent = 'Logging out...';
+      if (auth) await signOut(auth);
+      
+      folders = cloneDefaultFolders(); currentFolderIndex = 0; editIndex = null; lastSavedHash = '';
+      if(document.getElementById('authEmail')) document.getElementById('authEmail').value = ''; 
+      if(document.getElementById('authPassword')) document.getElementById('authPassword').value = '';
+      
+      resetForm(); renderFolders(); renderTable();
+      if(lBtn) lBtn.textContent = 'Log out';
+      
+      // Reset disabled login buttons when user returns to login screen
+      const gBtn = document.getElementById('googleLoginBtn');
+      if(gBtn) { gBtn.disabled = false; gBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Continue with Google'; }
+      const eBtn = document.getElementById('emailLoginBtn');
+      if(eBtn) { eBtn.disabled = false; eBtn.textContent = 'Sign In'; }
+      const sBtn = document.getElementById('emailSignupBtn');
+      if(sBtn) { sBtn.disabled = false; sBtn.textContent = 'Create Account'; }
+    }
+    bindEvent('logoutBtn', 'click', logout);
+
+    // --- Directory Tool Bindings ---
+    bindEvent('searchBox', 'input', renderTable);
+    bindEvent('clearBtn', 'click', resetForm);
+    bindEvent('moveLeftBtn', 'click', () => moveFolder(-1));
+    bindEvent('moveRightBtn', 'click', () => moveFolder(1));
+    bindEvent('addFolderBtn', 'click', addFolder);
+    bindEvent('renameFolderBtn', 'click', renameFolder);
+    bindEvent('deleteFolderBtn', 'click', deleteFolder);
+
+    function initializeFirebase() {
+      folders = cloneDefaultFolders(); renderFolders(); renderTable(); showLogin();
+      
+      try {
+          const app = initializeApp(embeddedFirebaseConfig);
+          auth = getAuth(app); db = getFirestore(app);
+
+          // Set initial persistence on load safely
+          const keepSignedIn = document.getElementById('keepSignedIn');
+          if (keepSignedIn) {
+             setPersistence(auth, keepSignedIn.checked ? browserLocalPersistence : browserSessionPersistence).catch(console.error);
+          }
+
+          onAuthStateChanged(auth, async (user) => {
+            activeUser = user;
+            if (!user) {
+              if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+              const uEmail = document.getElementById('userEmail');
+              if(uEmail) uEmail.textContent = 'Not signed in'; 
+              setSyncStatus('Waiting'); showLogin(); return;
+            }
+            const uEmail = document.getElementById('userEmail');
+            if(uEmail) uEmail.textContent = user.email || 'Google account';
+            
+            setSyncStatus('Loading...');
+            await bootstrapUserData(user);
+            subscribeToDirectory(user);
+            renderFolders(); renderTable();
+            setSyncStatus('Synced'); setLoginStatus('', 'success'); showApp();
+          });
+      } catch (err) {
+          setLoginStatus("Firebase Initialization Error: " + err.message, 'error');
+      }
+    }
+
+    initializeFirebase();
+  </script>
+</body>
+</html>
