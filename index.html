@@ -10,50 +10,43 @@
   <style>
     :root {
       --font: 'Inter', system-ui, -apple-system, sans-serif;
-      --bg: #09090b; /* Zinc 950 */
-      --surface: #18181b; /* Zinc 900 */
-      --surface-hover: #27272a; /* Zinc 800 */
-      --border: #27272a; 
-      --border-focus: #3f3f46;
-      --primary: #6366f1; /* Indigo 500 */
-      --primary-hover: #4f46e5;
-      --primary-glow: rgba(99, 102, 241, 0.25);
+      --bg: #030712; /* Very deep slate */
+      --surface: #111827; /* Slate 900 */
+      --surface-hover: #1f2937; /* Slate 800 */
+      --border: #374151; /* Slate 700 */
+      --border-focus: #6366f1; /* Indigo */
+      --primary: #4f46e5; /* Indigo 600 */
+      --primary-hover: #4338ca; /* Indigo 700 */
+      --primary-glow: rgba(79, 70, 229, 0.3);
       --danger: #ef4444;
-      --text: #f4f4f5; /* Zinc 50 */
-      --text-muted: #a1a1aa; /* Zinc 400 */
+      --text: #f9fafb; /* Slate 50 */
+      --text-muted: #9ca3af; /* Slate 400 */
       --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
       --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
       --radius-full: 9999px;
     }
 
     body.light-mode {
-      --bg: #f8fafc; 
+      --bg: #f3f4f6; 
       --surface: #ffffff; 
-      --surface-hover: #f1f5f9; 
-      --border: #e2e8f0; 
-      --border-focus: #cbd5e1;
-      --text: #0f172a; 
-      --text-muted: #64748b; 
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-      background-image: 
-        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 70%),
-        linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+      --surface-hover: #f9fafb; 
+      --border: #e5e7eb; 
+      --border-focus: #818cf8;
+      --text: #111827; 
+      --text-muted: #6b7280; 
+      --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      background-image: radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.08) 0%, transparent 60%);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background-color: var(--bg);
-      background-image: 
-        radial-gradient(circle at 50% 0%, rgba(39, 39, 42, 0.4) 0%, transparent 70%),
-        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 100% 100%, 40px 40px, 40px 40px;
+      background-image: radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.12) 0%, transparent 60%);
+      background-attachment: fixed;
       color: var(--text);
       font-family: var(--font);
       min-height: 100vh;
@@ -65,17 +58,17 @@
 
     input {
       width: 100%;
-      background: rgba(0, 0, 0, 0.2);
+      background: var(--bg);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 10px 14px;
+      padding: 12px 16px;
       color: var(--text);
       font-size: 14px;
       transition: all 0.2s;
     }
 
-    body.light-mode input { background: #ffffff; color: #0f172a; }
-    input::placeholder { color: var(--text-muted); opacity: 0.6; }
+    body.light-mode input { background: #ffffff; color: #111827; }
+    input::placeholder { color: var(--text-muted); opacity: 0.7; }
     input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
 
     button {
@@ -84,18 +77,18 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      font-size: 13px;
+      gap: 10px;
+      font-size: 14px;
       font-weight: 500;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    button:active { transform: scale(0.97); }
+    button:active { transform: scale(0.98); }
 
     .btn-main {
       background: var(--primary);
       color: white;
-      padding: 10px 16px;
+      padding: 12px 20px;
       border-radius: var(--radius-sm);
       box-shadow: 0 0 12px var(--primary-glow);
     }
@@ -106,14 +99,14 @@
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 10px 16px;
+      padding: 12px 20px;
       border-radius: var(--radius-sm);
     }
 
     .btn-secondary:hover { background: var(--surface-hover); border-color: var(--border-focus); }
 
     .btn-icon-only {
-      padding: 8px;
+      padding: 10px;
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text-muted);
@@ -134,34 +127,39 @@
     .login-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      padding: 40px 32px;
+      padding: 48px 40px;
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-md);
       width: 100%;
-      max-width: 380px;
+      max-width: 420px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      text-align: center;
+      gap: 28px;
+    }
+
+    .brand-logo-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 8px;
     }
 
     .brand-logo {
-      width: 48px;
-      height: 48px;
-      margin: 0 auto 8px;
-      background: var(--primary-glow);
-      color: var(--primary);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(99, 102, 241, 0.4);
+      height: 64px;
+      width: auto;
+      object-fit: contain;
     }
 
-    .login-card h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
-    .login-card p { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-top: -8px; }
+    .login-header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-align: center;
+    }
 
-    .auth-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+    .login-header h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+    .login-header p { font-size: 15px; color: var(--text-muted); line-height: 1.6; }
+
+    .auth-stack { display: flex; flex-direction: column; gap: 16px; }
     .auth-row { display: flex; gap: 12px; }
     .auth-row button { flex: 1; }
 
@@ -171,13 +169,15 @@
       text-align: center;
       color: var(--text-muted);
       font-size: 12px;
-      margin: 8px 0;
+      margin: 4px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
-    .divider::before { margin-right: 10px; }
-    .divider::after { margin-left: 10px; }
+    .divider::before { margin-right: 12px; }
+    .divider::after { margin-left: 12px; }
 
-    .status { min-height: 20px; font-size: 13px; color: var(--text-muted); }
+    .status { min-height: 20px; font-size: 13px; color: var(--text-muted); text-align: center; }
     .status.error { color: var(--danger); }
     .status.success { color: var(--primary); }
 
@@ -185,16 +185,16 @@
     .app-shell {
       display: none;
       width: 100%;
-      max-width: 1040px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: 40px 20px;
+      padding: 48px 24px;
       flex-direction: column;
-      gap: 24px;
+      gap: 32px;
       animation: fadeIn 0.4s ease-out;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(12px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
@@ -203,30 +203,28 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 20px;
     }
 
     .title-row h1 {
-      font-size: 26px;
-      font-weight: 600;
+      font-size: 28px;
+      font-weight: 700;
       letter-spacing: -0.03em;
-      background: linear-gradient(135deg, var(--text) 0%, var(--text-muted) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: var(--text);
     }
 
-    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .header-actions { display: flex; align-items: center; gap: 14px; }
 
     .pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
+      padding: 8px 16px;
       border-radius: var(--radius-full);
-      background: rgba(128, 128, 128, 0.05);
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text-muted);
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 500;
     }
 
@@ -236,8 +234,8 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       border-radius: var(--radius-sm);
       background: var(--surface);
       border: 1px solid var(--border);
@@ -245,7 +243,7 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .theme-toggle:hover { background: var(--surface-hover); color: var(--text); }
+    .theme-toggle:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-focus); }
     .theme-toggle svg { width: 18px; height: 18px; position: absolute; transition: transform 0.3s, opacity 0.3s; }
     .theme-toggle .sun { opacity: 0; transform: rotate(-90deg); }
     body.light-mode .theme-toggle .sun { opacity: 1; transform: rotate(0); }
@@ -256,7 +254,7 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 24px;
+      padding: 28px;
       box-shadow: var(--shadow-md);
     }
 
@@ -264,54 +262,54 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
-    .card-title { font-size: 16px; font-weight: 600; color: var(--text); }
+    .card-title { font-size: 18px; font-weight: 600; color: var(--text); }
 
-    .folder-row { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
-    .folder-pills { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+    .folder-row { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; align-items: center; }
+    .folder-pills { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; }
 
     .folder-pill {
       background: transparent;
       color: var(--text-muted);
-      padding: 8px 16px;
+      padding: 10px 18px;
       border-radius: var(--radius-sm);
       border: 1px solid transparent;
       font-weight: 500;
+      transition: all 0.2s;
     }
     .folder-pill:hover { color: var(--text); background: rgba(128, 128, 128, 0.05); }
     .folder-pill.active {
-      background: var(--surface-hover);
-      color: var(--text);
-      border-color: var(--border);
-      box-shadow: var(--shadow-sm);
+      background: var(--primary-glow);
+      color: var(--primary);
+      border-color: rgba(79, 70, 229, 0.4);
     }
-    body.light-mode .folder-pill.active { background: #f1f5f9; }
+    body.light-mode .folder-pill.active { background: #e0e7ff; color: var(--primary-hover); border-color: #c7d2fe; }
 
-    .folder-tools { display: flex; gap: 6px; }
+    .folder-tools { display: flex; gap: 8px; }
 
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
     }
 
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label { font-size: 12px; font-weight: 500; color: var(--text-muted); }
+    .field { display: flex; flex-direction: column; gap: 8px; }
+    .field label { font-size: 13px; font-weight: 500; color: var(--text-muted); }
     
-    .form-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+    .form-footer { display: flex; justify-content: flex-end; gap: 14px; margin-top: 24px; }
 
-    .search-wrap { position: relative; width: 300px; max-width: 100%; }
-    .search-wrap input { padding-left: 36px; border-radius: var(--radius-full); }
-    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 14px; color: var(--text-muted); }
+    .search-wrap { position: relative; width: 320px; max-width: 100%; }
+    .search-wrap input { padding-left: 40px; border-radius: var(--radius-full); }
+    .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 16px; color: var(--text-muted); }
 
     /* --- Table --- */
     .table-container {
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       overflow-x: auto;
-      margin-top: 16px;
+      margin-top: 20px;
     }
 
     table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -319,12 +317,12 @@
     body.light-mode thead { background: rgba(0, 0, 0, 0.02); }
 
     th {
-      font-size: 12px; font-weight: 500; color: var(--text-muted);
-      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
     }
 
     td {
-      padding: 14px 16px; font-size: 14px;
+      padding: 16px 20px; font-size: 14px;
       border-bottom: 1px solid rgba(128, 128, 128, 0.08); vertical-align: middle;
     }
     body.light-mode td { border-bottom: 1px solid rgba(0, 0, 0, 0.04); }
@@ -334,27 +332,28 @@
     tbody tr:last-child td { border-bottom: none; }
 
     .tag {
-      display: inline-flex; padding: 4px 10px; border-radius: var(--radius-full);
+      display: inline-flex; padding: 6px 12px; border-radius: var(--radius-full);
       background: rgba(128, 128, 128, 0.08); color: var(--text-muted); font-size: 12px; border: 1px solid var(--border);
     }
 
-    .table-actions { display: flex; gap: 6px; }
+    .table-actions { display: flex; gap: 8px; }
     .btn-action {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 32px; height: 32px; border-radius: var(--radius-sm);
+      width: 36px; height: 36px; border-radius: var(--radius-sm);
       background: transparent; border: 1px solid transparent; color: var(--text-muted);
+      transition: all 0.2s;
     }
     .btn-action svg { width: 16px; height: 16px; pointer-events: none; }
     .btn-action:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border); color: var(--text); }
     .btn-action:disabled { opacity: 0.3; cursor: not-allowed; }
 
     .footer {
-      text-align: center; padding: 24px 0 12px 0; color: var(--text-muted);
-      font-size: 12px; margin-top: auto;
+      text-align: center; padding: 32px 0 16px 0; color: var(--text-muted);
+      font-size: 13px; margin-top: auto;
     }
 
     @media (max-width: 768px) {
-      .card-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .card-header { flex-direction: column; align-items: flex-start; gap: 16px; }
       .search-wrap { width: 100%; }
       .folder-row { flex-direction: column; align-items: stretch; }
       .folder-tools { justify-content: flex-end; }
@@ -365,24 +364,32 @@
 
   <section class="login-shell" id="loginShell">
     <div class="login-card">
-      <div class="brand-logo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+      <div class="brand-logo-container">
+        <img src="https://drive.google.com/uc?export=view&id=1sDCGWxVb34ICgYI2uXqLNA90uiJkDseC" alt="TechBugs Logo" class="brand-logo" onerror="this.style.display='none'">
       </div>
-      <div>
+      
+      <div class="login-header">
         <h2>TechBugs Identity</h2>
         <p>Welcome to RustDesk Address Book.<br>Sign in to access your synchronized endpoints.</p>
       </div>
       
       <div class="auth-stack">
         <button class="btn-secondary" type="button" id="googleLoginBtn" style="width: 100%;">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12s4.477 10 10 10 10-4.477 10-10z"></path><path d="M12 8v8M8 12h8"></path></svg>
+          <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
           Continue with Google
         </button>
         
         <div class="divider">OR</div>
         
-        <input type="text" id="authEmail" placeholder="Email address">
-        <input type="password" id="authPassword" placeholder="Password">
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <input type="text" id="authEmail" placeholder="Email address">
+          <input type="password" id="authPassword" placeholder="Password">
+        </div>
         
         <div class="auth-row">
           <button class="btn-secondary" type="button" id="emailSignupBtn">Create Account</button>
@@ -400,7 +407,7 @@
         <h1>RustDesk Address Book</h1>
       </div>
       <div class="header-actions">
-        <div class="pill"><span id="userEmail">Not signed in</span> <span style="margin:0 4px; opacity:0.3;">|</span> <span id="syncStatus" style="color:var(--primary);">Waiting</span></div>
+        <div class="pill"><span id="userEmail">Not signed in</span> <span style="margin:0 8px; opacity:0.3;">|</span> <span id="syncStatus" style="color:var(--primary);">Waiting</span></div>
         
         <button class="theme-toggle" id="themeToggleBtn" title="Toggle Theme">
           <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -420,7 +427,7 @@
           <button class="btn-icon-only" type="button" id="moveRightBtn" title="Move Right">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </button>
-          <div style="width: 1px; background: var(--border); margin: 0 4px;"></div>
+          <div style="width: 1px; background: var(--border); margin: 0 6px;"></div>
           <button class="btn-secondary" type="button" id="addFolderBtn">New Folder</button>
           <button class="btn-secondary" type="button" id="renameFolderBtn">Rename</button>
           <button class="btn-secondary" type="button" id="deleteFolderBtn" style="color: var(--danger); border-color: rgba(239,68,68,0.2);">Delete</button>
@@ -431,7 +438,7 @@
     <section class="card">
       <div class="card-header">
         <div class="card-title">Client Details</div>
-        <div class="pill" style="font-size:11px; padding:4px 10px;" id="modeTag">New entry</div>
+        <div class="tag" id="modeTag">New entry</div>
       </div>
       <form id="clientForm">
         <div class="form-grid">
@@ -483,7 +490,7 @@
       </div>
     </section>
 
-    <div class="footer">App developed by TechBugs (Yash Shah +91 7028533162) | Sync-enabled build version 1.0</div>
+    <div class="footer">App developed by TechBugs IT Solutions (Yash Shah +91 7028533162) | Sync-enabled build version 1.0</div>
   </main>
 
   <script type="module">
