@@ -425,8 +425,10 @@
     let lastSavedHash = '';
     let applyingRemoteState = false;
 
-    // --- Theme Logic (Runs Immediately) ---
-    if (localStorage.getItem(THEME_KEY) === 'light') document.body.classList.add('light-mode');
+    // --- Theme Logic ---
+    if (localStorage.getItem(THEME_KEY) === 'light') {
+      document.body.classList.add('light-mode');
+    }
     document.querySelectorAll('.theme-toggle').forEach(btn => {
       btn.addEventListener('click', () => {
         document.body.classList.toggle('light-mode');
@@ -434,19 +436,9 @@
       });
     });
 
-    // --- Safe Event Binder Utility ---
-    // This prevents a single missing element from crashing the entire Javascript file
-    function bindEvent(id, eventType, callback) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener(eventType, callback);
-        }
-    }
-
     // --- Custom UI Feedback (Toasts & Modals) ---
     function showToast(msg, isError = false) {
       const container = document.getElementById('toastContainer');
-      if(!container) return;
       const toast = document.createElement('div');
       toast.className = `toast ${isError ? 'error' : ''}`;
       toast.innerHTML = isError 
@@ -462,41 +454,44 @@
     function openModal(title, desc, isPrompt = false, defaultVal = '') {
       return new Promise((resolve) => {
         const overlay = document.getElementById('modalOverlay');
-        if(!overlay) { resolve(isPrompt ? prompt(desc, defaultVal) : confirm(desc)); return; }
-        
         document.getElementById('modalTitle').textContent = title;
         document.getElementById('modalDesc').textContent = desc;
+        
         const inputEl = document.getElementById('modalInput');
         inputEl.style.display = isPrompt ? 'block' : 'none';
         inputEl.value = defaultVal;
+        
         overlay.style.display = 'flex';
         if (isPrompt) inputEl.focus();
 
         const cleanup = () => { overlay.style.display = 'none'; };
 
-        document.getElementById('modalConfirm').onclick = () => { cleanup(); resolve(isPrompt ? inputEl.value : true); };
-        document.getElementById('modalCancel').onclick = () => { cleanup(); resolve(null); };
+        document.getElementById('modalConfirm').onclick = () => {
+          cleanup();
+          resolve(isPrompt ? inputEl.value : true);
+        };
+        
+        document.getElementById('modalCancel').onclick = () => {
+          cleanup();
+          resolve(null);
+        };
       });
     }
 
     function setLoginStatus(message, tone = '') {
-      const ls = document.getElementById('loginStatus');
-      if (ls) {
-          ls.textContent = message || '';
-          ls.className = `status${tone ? ` ${tone}` : ''}`;
-      }
+      const el = document.getElementById('loginStatus');
+      el.textContent = message || '';
+      el.className = `status${tone ? ` ${tone}` : ''}`;
     }
 
     function setSyncStatus(message) {
-      const ss = document.getElementById('syncStatus');
-      if (ss) ss.textContent = message;
+      document.getElementById('syncStatus').textContent = message;
     }
 
     // --- Form & Input Polish ---
     function togglePassVisibility(inputId, btnId) {
       const input = document.getElementById(inputId);
       const btn = document.getElementById(btnId);
-      if(!input || !btn) return;
       if (input.type === 'password') {
         input.type = 'text';
         btn.innerHTML = ICONS.eyeOff;
@@ -505,13 +500,15 @@
         btn.innerHTML = ICONS.eye;
       }
     }
-    bindEvent('toggleAuthPass', 'click', () => togglePassVisibility('authPassword', 'toggleAuthPass'));
-    bindEvent('toggleClientPass', 'click', () => togglePassVisibility('clientPassword', 'toggleClientPass'));
+    
+    document.getElementById('toggleAuthPass').addEventListener('click', () => togglePassVisibility('authPassword', 'toggleAuthPass'));
+    document.getElementById('toggleClientPass').addEventListener('click', () => togglePassVisibility('clientPassword', 'toggleClientPass'));
 
     function copyToClipboard(text, type) {
       if (!text) return;
-      navigator.clipboard.writeText(text);
-      showToast(`${type} copied to clipboard`);
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`${type} copied to clipboard`);
+      });
     }
 
     // --- Core Logic ---
@@ -526,14 +523,14 @@
     function currentFolder() { return folders[currentFolderIndex]; }
     
     function showLogin() { 
-        if(document.getElementById('loginShell')) document.getElementById('loginShell').style.display = 'flex'; 
-        if(document.getElementById('appShell')) document.getElementById('appShell').style.display = 'none'; 
+      document.getElementById('loginShell').style.display = 'flex'; 
+      document.getElementById('appShell').style.display = 'none'; 
     }
     
     function showApp() { 
-        if(document.getElementById('loginShell')) document.getElementById('loginShell').style.display = 'none'; 
-        if(document.getElementById('appShell')) document.getElementById('appShell').style.display = 'flex'; 
-        if(document.getElementById('clientName')) document.getElementById('clientName').focus(); 
+      document.getElementById('loginShell').style.display = 'none'; 
+      document.getElementById('appShell').style.display = 'flex'; 
+      document.getElementById('clientName').focus(); 
     }
 
     function cloneDefaultFolders() { return JSON.parse(JSON.stringify(DEFAULT_FOLDERS)); }
@@ -551,7 +548,6 @@
 
     function renderFolders() {
       const pills = document.getElementById('folderPills');
-      if(!pills) return;
       pills.innerHTML = '';
       folders.forEach((folder, index) => {
         const btn = document.createElement('button');
@@ -566,15 +562,13 @@
         });
         pills.appendChild(btn);
       });
-      const fl = document.getElementById('folderLabel');
-      if(fl) fl.textContent = currentFolder()?.name || 'Endpoints';
+      document.getElementById('folderLabel').textContent = currentFolder()?.name || 'Endpoints';
     }
 
     function renderTable() {
       const cBody = document.getElementById('clientsBody');
       const searchBx = document.getElementById('searchBox');
-      if(!cBody || !searchBx) return;
-
+      
       cBody.innerHTML = '';
       const folder = currentFolder();
       if (!folder) return;
@@ -586,18 +580,22 @@
         const index = folder.clients.indexOf(client);
         const row = document.createElement('tr');
 
+        // Password Cell
         const passwordCell = document.createElement('td');
         passwordCell.style.fontFamily = "monospace";
         passwordCell.innerHTML = `
           <div style="display:flex; align-items:center; gap:8px;">
             <span class="hidden-pass">••••••••</span><span class="real-pass" style="display:none"></span>
-            ${client.password ? `<button class="btn-icon-micro" title="Copy Password">${ICONS.copy}</button>` : ''}
+            ${client.password ? `<button class="btn-icon-micro copy-btn" title="Copy Password">${ICONS.copy}</button>` : ''}
           </div>`;
         passwordCell.querySelector('.real-pass').textContent = client.password;
-        if(client.password) {
-          passwordCell.querySelector('.btn-icon-micro').addEventListener('click', () => copyToClipboard(client.password, 'Password'));
+        
+        const copyPassBtn = passwordCell.querySelector('.copy-btn');
+        if (copyPassBtn) {
+          copyPassBtn.addEventListener('click', () => copyToClipboard(client.password, 'Password'));
         }
 
+        // Actions
         const actions = document.createElement('td');
         const actionWrap = document.createElement('div');
         actionWrap.className = 'table-actions';
@@ -651,17 +649,20 @@
         actionWrap.append(connectBtn, upBtn, downBtn, editBtn, eyeBtn, deleteBtn);
         actions.appendChild(actionWrap);
 
+        // ID Cell setup (to attach copy event safely)
         row.innerHTML = `
           <td style="font-weight:500; color:var(--text);">${escapeHtml(client.name)}</td>
           <td style="font-family:monospace;">
             <div style="display:flex; align-items:center; gap:8px;">
               ${escapeHtml(client.id)}
-              <button class="btn-icon-micro" title="Copy ID" onclick="navigator.clipboard.writeText('${client.id.replace(/'/g, "\\'")}'); document.getElementById('toastContainer').appendChild(Object.assign(document.createElement('div'),{className:'toast',innerHTML:'<span>ID copied to clipboard</span>', style:'animation:slideIn 0.3s forwards'})); setTimeout(()=>document.getElementById('toastContainer').lastChild.remove(), 3500);">${ICONS.copy}</button>
+              <button class="btn-icon-micro copy-id-btn" title="Copy ID">${ICONS.copy}</button>
             </div>
           </td>
           <td></td>
           <td>${client.notes ? `<span class="tag">${escapeHtml(client.notes)}</span>` : ''}</td>
         `;
+        
+        row.querySelector('.copy-id-btn').addEventListener('click', () => copyToClipboard(client.id, 'ID'));
         row.children[2].replaceWith(passwordCell);
         row.appendChild(actions);
         cBody.appendChild(row);
@@ -671,14 +672,14 @@
     function escapeHtml(value) { return String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
 
     function resetForm() {
-      if(document.getElementById('clientName')) document.getElementById('clientName').value = ''; 
-      if(document.getElementById('clientId')) document.getElementById('clientId').value = ''; 
-      if(document.getElementById('clientPassword')) document.getElementById('clientPassword').value = ''; 
-      if(document.getElementById('clientNotes')) document.getElementById('clientNotes').value = '';
+      document.getElementById('clientName').value = ''; 
+      document.getElementById('clientId').value = ''; 
+      document.getElementById('clientPassword').value = ''; 
+      document.getElementById('clientNotes').value = '';
       editIndex = null; 
-      if(document.getElementById('modeTag')) document.getElementById('modeTag').textContent = 'New entry';
-      if(document.getElementById('moveFolderWrap')) document.getElementById('moveFolderWrap').style.display = 'none';
-      if(document.getElementById('saveClientBtn')) document.getElementById('saveClientBtn').textContent = 'Save Client';
+      document.getElementById('modeTag').textContent = 'New entry';
+      document.getElementById('moveFolderWrap').style.display = 'none';
+      document.getElementById('saveClientBtn').textContent = 'Save Client';
     }
 
     function loadIntoForm(index) {
@@ -693,15 +694,14 @@
       document.getElementById('saveClientBtn').textContent = 'Update Client';
       
       const cfs = document.getElementById('clientFolderSelect');
-      if(cfs) {
-          cfs.innerHTML = '';
-          folders.forEach((f, i) => {
-            const opt = document.createElement('option');
-            opt.value = i; opt.textContent = f.name;
-            if(i === currentFolderIndex) opt.selected = true;
-            cfs.appendChild(opt);
-          });
-      }
+      cfs.innerHTML = '';
+      folders.forEach((f, i) => {
+        const opt = document.createElement('option');
+        opt.value = i; opt.textContent = f.name;
+        if(i === currentFolderIndex) opt.selected = true;
+        cfs.appendChild(opt);
+      });
+      
       document.getElementById('moveFolderWrap').style.display = 'flex';
       document.getElementById('clientName').focus();
     }
@@ -776,8 +776,8 @@
       resetForm(); await persistFolders(); renderFolders(); renderTable(); showToast('Folder deleted');
     }
 
-    // --- Form Submission (Validation + Trim) ---
-    bindEvent('clientForm', 'submit', async (event) => {
+    // --- Form Submission ---
+    document.getElementById('clientForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const folder = currentFolder();
       if (!folder) { showToast('Create a folder first.', true); return; }
@@ -815,143 +815,148 @@
       document.getElementById('clientName').focus();
     });
 
-    // --- Direct Execution Authentication Methods ---
+    // --- EXACT, SAFE AUTHENTICATION BINDINGS (Reverted from Perfect Build) ---
     
-    // Updates persistence based on checkbox WITHOUT awaiting or wrapping the popups
-    bindEvent('keepSignedIn', 'change', (e) => {
-        if(auth) {
-            setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence).catch(console.error);
-        }
-    });
-
-    bindEvent('googleLoginBtn', 'click', () => {
-      const btn = document.getElementById('googleLoginBtn');
-      const originalHTML = btn.innerHTML;
-      btn.textContent = 'Loading...';
-      btn.disabled = true;
+    async function signInWithGoogle() {
       setLoginStatus('Opening Google sign-in...');
-      
-      signInWithPopup(auth, new GoogleAuthProvider()).catch(error => {
-        setLoginStatus(error.message, 'error');
-        btn.innerHTML = originalHTML;
-        btn.disabled = false;
-      });
-    });
+      await signInWithPopup(auth, new GoogleAuthProvider());
+    }
 
-    bindEvent('emailLoginBtn', 'click', () => {
+    async function signInWithEmail() {
       const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value;
-      if (!email || !password) { setLoginStatus('Enter email and password.', 'error'); return; }
-
-      const btn = document.getElementById('emailLoginBtn');
-      const originalText = btn.textContent;
-      btn.textContent = 'Loading...';
-      btn.disabled = true;
+      if (!email || !password) {
+        setLoginStatus('Enter your email and password first.', 'error');
+        return;
+      }
       setLoginStatus('Signing you in...');
+      await signInWithEmailAndPassword(auth, email, password);
+    }
 
-      signInWithEmailAndPassword(auth, email, password).catch(error => {
-        setLoginStatus(error.message, 'error');
-        btn.textContent = originalText;
-        btn.disabled = false;
-      });
-    });
-
-    bindEvent('emailSignupBtn', 'click', () => {
+    async function createAccount() {
       const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value;
-      if (!email || !password) { setLoginStatus('Enter email and password.', 'error'); return; }
-      if (password.length < 6) { setLoginStatus('Password must be 6+ chars.', 'error'); return; }
-
-      const btn = document.getElementById('emailSignupBtn');
-      const originalText = btn.textContent;
-      btn.textContent = 'Loading...';
-      btn.disabled = true;
+      if (!email || !password) {
+        setLoginStatus('Enter an email and password to create the account.', 'error');
+        return;
+      }
+      if (password.length < 6) {
+        setLoginStatus('Password must be at least 6 characters.', 'error');
+        return;
+      }
       setLoginStatus('Creating your account...');
+      await createUserWithEmailAndPassword(auth, email, password);
+    }
 
-      createUserWithEmailAndPassword(auth, email, password).catch(error => {
-        setLoginStatus(error.message, 'error');
-        btn.textContent = originalText;
-        btn.disabled = false;
-      });
-    });
-
-    bindEvent('forgotPassBtn', 'click', (e) => {
-      e.preventDefault();
+    async function resetPassword() {
       const email = document.getElementById('authEmail').value.trim();
-      if (!email) { setLoginStatus('Enter your email in the box first to reset password.', 'error'); return; }
-      sendPasswordResetEmail(auth, email)
-        .then(() => setLoginStatus('Password reset email sent!', 'success'))
-        .catch((error) => setLoginStatus(error.message, 'error'));
+      if (!email) {
+        setLoginStatus('Enter your email in the box first to reset password.', 'error');
+        return;
+      }
+      await sendPasswordResetEmail(auth, email);
+      setLoginStatus('Password reset email sent!', 'success');
+    }
+
+    document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+      try { await signInWithGoogle(); } catch (error) { setLoginStatus(error.message, 'error'); }
     });
 
-    bindEvent('authPassword', 'keydown', (e) => { 
-        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('emailLoginBtn').click(); } 
+    document.getElementById('emailLoginBtn').addEventListener('click', async () => {
+      try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); }
+    });
+
+    document.getElementById('emailSignupBtn').addEventListener('click', async () => {
+      try { await createAccount(); } catch (error) { setLoginStatus(error.message, 'error'); }
+    });
+
+    document.getElementById('forgotPassBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      try { await resetPassword(); } catch (error) { setLoginStatus(error.message, 'error'); }
+    });
+
+    document.getElementById('authPassword').addEventListener('keydown', async (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); }
+      }
+    });
+
+    document.getElementById('keepSignedIn').addEventListener('change', async (e) => {
+      if(auth) {
+        try {
+          await setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence);
+        } catch (error) {
+          console.error(error);
+        }
+      }
     });
 
     async function logout() {
-      const lBtn = document.getElementById('logoutBtn');
-      if(lBtn) lBtn.textContent = 'Logging out...';
       if (auth) await signOut(auth);
       
-      folders = cloneDefaultFolders(); currentFolderIndex = 0; editIndex = null; lastSavedHash = '';
-      if(document.getElementById('authEmail')) document.getElementById('authEmail').value = ''; 
-      if(document.getElementById('authPassword')) document.getElementById('authPassword').value = '';
-      
-      resetForm(); renderFolders(); renderTable();
-      if(lBtn) lBtn.textContent = 'Log out';
-      
-      // Reset disabled login buttons when user returns to login screen
-      const gBtn = document.getElementById('googleLoginBtn');
-      if(gBtn) { gBtn.disabled = false; gBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Continue with Google'; }
-      const eBtn = document.getElementById('emailLoginBtn');
-      if(eBtn) { eBtn.disabled = false; eBtn.textContent = 'Sign In'; }
-      const sBtn = document.getElementById('emailSignupBtn');
-      if(sBtn) { sBtn.disabled = false; sBtn.textContent = 'Create Account'; }
+      folders = cloneDefaultFolders();
+      currentFolderIndex = 0;
+      editIndex = null;
+      lastSavedHash = '';
+      document.getElementById('authEmail').value = '';
+      document.getElementById('authPassword').value = '';
+      resetForm();
+      renderFolders();
+      renderTable();
     }
-    bindEvent('logoutBtn', 'click', logout);
+    
+    document.getElementById('logoutBtn').addEventListener('click', logout);
 
     // --- Directory Tool Bindings ---
-    bindEvent('searchBox', 'input', renderTable);
-    bindEvent('clearBtn', 'click', resetForm);
-    bindEvent('moveLeftBtn', 'click', () => moveFolder(-1));
-    bindEvent('moveRightBtn', 'click', () => moveFolder(1));
-    bindEvent('addFolderBtn', 'click', addFolder);
-    bindEvent('renameFolderBtn', 'click', renameFolder);
-    bindEvent('deleteFolderBtn', 'click', deleteFolder);
+    document.getElementById('searchBox').addEventListener('input', renderTable);
+    document.getElementById('clearBtn').addEventListener('click', resetForm);
+    document.getElementById('moveLeftBtn').addEventListener('click', () => moveFolder(-1));
+    document.getElementById('moveRightBtn').addEventListener('click', () => moveFolder(1));
+    document.getElementById('addFolderBtn').addEventListener('click', addFolder);
+    document.getElementById('renameFolderBtn').addEventListener('click', renameFolder);
+    document.getElementById('deleteFolderBtn').addEventListener('click', deleteFolder);
 
-    function initializeFirebase() {
-      folders = cloneDefaultFolders(); renderFolders(); renderTable(); showLogin();
+    async function initializeFirebase() {
+      folders = cloneDefaultFolders();
+      renderFolders();
+      renderTable();
+      showLogin();
+
+      const app = initializeApp(embeddedFirebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
       
-      try {
-          const app = initializeApp(embeddedFirebaseConfig);
-          auth = getAuth(app); db = getFirestore(app);
-
-          // Set initial persistence on load safely
-          const keepSignedIn = document.getElementById('keepSignedIn');
-          if (keepSignedIn) {
-             setPersistence(auth, keepSignedIn.checked ? browserLocalPersistence : browserSessionPersistence).catch(console.error);
-          }
-
-          onAuthStateChanged(auth, async (user) => {
-            activeUser = user;
-            if (!user) {
-              if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
-              const uEmail = document.getElementById('userEmail');
-              if(uEmail) uEmail.textContent = 'Not signed in'; 
-              setSyncStatus('Waiting'); showLogin(); return;
-            }
-            const uEmail = document.getElementById('userEmail');
-            if(uEmail) uEmail.textContent = user.email || 'Google account';
-            
-            setSyncStatus('Loading...');
-            await bootstrapUserData(user);
-            subscribeToDirectory(user);
-            renderFolders(); renderTable();
-            setSyncStatus('Synced'); setLoginStatus('', 'success'); showApp();
-          });
-      } catch (err) {
-          setLoginStatus("Firebase Initialization Error: " + err.message, 'error');
+      // Initialize persistence state without awaiting it to avoid blocking load
+      const keepSignedInBox = document.getElementById('keepSignedIn');
+      if(keepSignedInBox) {
+         setPersistence(auth, keepSignedInBox.checked ? browserLocalPersistence : browserSessionPersistence).catch(console.error);
       }
+
+      onAuthStateChanged(auth, async (user) => {
+        activeUser = user;
+
+        if (!user) {
+          if (unsubscribeSnapshot) {
+            unsubscribeSnapshot();
+            unsubscribeSnapshot = null;
+          }
+          document.getElementById('userEmail').textContent = 'Not signed in';
+          setSyncStatus('Waiting');
+          showLogin();
+          return;
+        }
+
+        document.getElementById('userEmail').textContent = user.email || 'Google account';
+        setSyncStatus('Loading...');
+        await bootstrapUserData(user);
+        subscribeToDirectory(user);
+        renderFolders();
+        renderTable();
+        setSyncStatus('Synced');
+        setLoginStatus('', 'success');
+        showApp();
+      });
     }
 
     initializeFirebase();
