@@ -65,9 +65,9 @@
       box-shadow: var(--shadow-md);
     }
 
-    button, input { font: inherit; outline: none; }
+    button, input, select { font: inherit; outline: none; }
 
-    input {
+    input, select {
       width: 100%;
       background: rgba(128, 128, 128, 0.08);
       border: 1px solid var(--border);
@@ -78,173 +78,95 @@
       transition: all 0.2s;
     }
 
+    select option { background: var(--bg); color: var(--text); }
     input::placeholder { color: var(--text-muted); opacity: 0.8; }
-    input:focus { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
+    input:focus, select:focus { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
+
+    .input-wrapper { position: relative; width: 100%; }
+    .input-wrapper input { padding-right: 40px; }
+    .icon-btn-absolute {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      background: transparent; border: none; color: var(--text-muted);
+      cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
+    }
+    .icon-btn-absolute:hover { color: var(--text); }
 
     button {
-      border: none;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      font-size: 14px;
-      font-weight: 500;
+      border: none; cursor: pointer; display: inline-flex; align-items: center;
+      justify-content: center; gap: 10px; font-size: 14px; font-weight: 500;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    button:active:not(:disabled) { transform: scale(0.98); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    button:active { transform: scale(0.98); }
+    .btn-main { background: var(--primary-bg); color: var(--primary-text); padding: 12px 20px; border-radius: var(--radius-sm); font-weight: 600; }
+    .btn-main:hover:not(:disabled) { background: var(--primary-hover); }
 
-    .btn-main {
-      background: var(--primary-bg);
-      color: var(--primary-text);
-      padding: 12px 20px;
-      border-radius: var(--radius-sm);
-      font-weight: 600;
+    .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: var(--radius-sm); }
+    .btn-secondary:hover:not(:disabled) { background: rgba(128, 128, 128, 0.1); border-color: var(--border-focus); }
+
+    .btn-icon-only { padding: 10px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); border-radius: var(--radius-sm); }
+    .btn-icon-only:hover:not(:disabled) { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border-focus); }
+    .btn-icon-only svg { width: 16px; height: 16px; pointer-events: none;}
+
+    .btn-icon-micro { padding: 4px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: 4px; display: inline-flex; }
+    .btn-icon-micro:hover { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border); }
+    .btn-icon-micro svg { width: 14px; height: 14px; pointer-events: none;}
+
+    /* --- Feedback Toasts & Modals --- */
+    #toastContainer { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
+    .toast {
+      background: var(--surface); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-md); font-size: 14px; display: flex; align-items: center; gap: 10px;
+      animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+    .toast.error { border-left: 3px solid var(--danger); }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes slideOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.95); } }
 
-    .btn-main:hover { background: var(--primary-hover); }
-
-    .btn-secondary {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 12px 20px;
-      border-radius: var(--radius-sm);
+    #modalOverlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+      animation: fadeInModal 0.2s ease-out;
     }
-
-    .btn-secondary:hover { background: rgba(128, 128, 128, 0.1); border-color: var(--border-focus); }
-
-    .btn-icon-only {
-      padding: 10px;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      border-radius: var(--radius-sm);
-    }
-    .btn-icon-only:hover { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border-focus); }
-    .btn-icon-only svg { width: 16px; height: 16px; }
+    @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
+    .modal-card { width: 100%; max-width: 400px; padding: 28px; border-radius: var(--radius-md); }
+    .modal-card h3 { font-size: 18px; margin-bottom: 8px; font-weight: 600; }
+    .modal-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;}
 
     /* --- Login Overlay --- */
-    .login-shell {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      position: relative;
-    }
-
-    .login-theme-toggle {
-      position: absolute;
-      top: 24px;
-      right: 24px;
-    }
-
-    .login-card {
-      padding: 48px 40px;
-      border-radius: var(--radius-lg);
-      width: 100%;
-      max-width: 420px;
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-    }
-
-    .login-header {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      text-align: center;
-    }
-
+    .login-shell { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; position: relative; }
+    .login-theme-toggle { position: absolute; top: 24px; right: 24px; }
+    .login-card { padding: 48px 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 28px; }
+    .login-header { display: flex; flex-direction: column; gap: 10px; text-align: center; }
     .login-header h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; color: var(--text); }
     .login-header p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-
     .auth-stack { display: flex; flex-direction: column; gap: 16px; }
     .auth-row { display: flex; gap: 12px; }
     .auth-row button { flex: 1; }
 
-    .divider {
-      display: flex;
-      align-items: center;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 11px;
-      margin: 4px 0;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
+    .divider { display: flex; align-items: center; text-align: center; color: var(--text-muted); font-size: 11px; margin: 4px 0; text-transform: uppercase; letter-spacing: 0.05em; }
     .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
     .divider::before { margin-right: 12px; }
     .divider::after { margin-left: 12px; }
 
-    .status { min-height: 20px; font-size: 13px; color: var(--text-muted); text-align: center; }
-    .status.error { color: var(--danger); }
-
     /* --- Main App Layout --- */
-    .app-shell {
-      display: none;
-      width: 100%;
-      max-width: 1080px;
-      margin: 0 auto;
-      padding: 48px 24px;
-      flex-direction: column;
-      gap: 32px;
-      animation: fadeIn 0.4s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .app-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-
-    .title-row h1 {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      color: var(--text);
-    }
-
+    .app-shell { display: none; width: 100%; max-width: 1080px; margin: 0 auto; padding: 48px 24px; flex-direction: column; gap: 32px; animation: fadeIn 0.4s ease-out; }
+    .app-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+    .title-row h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
     .header-actions { display: flex; align-items: center; gap: 14px; }
 
     .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border-radius: var(--radius-full);
-      background: rgba(128, 128, 128, 0.08);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-size: 13px;
-      font-weight: 500;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: var(--radius-full);
+      background: rgba(128, 128, 128, 0.08); border: 1px solid var(--border); color: var(--text-muted);
+      font-size: 13px; font-weight: 500; backdrop-filter: blur(8px);
     }
 
-    /* Theme Toggle */
     .theme-toggle {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-sm);
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.2s;
+      position: relative; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+      border-radius: var(--radius-sm); background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+      cursor: pointer; transition: all 0.2s;
     }
     .theme-toggle:hover { background: rgba(128, 128, 128, 0.1); color: var(--text); border-color: var(--border-focus); }
     .theme-toggle svg { width: 18px; height: 18px; position: absolute; transition: transform 0.3s, opacity 0.3s; }
@@ -253,51 +175,20 @@
     body.light-mode .theme-toggle .moon { opacity: 0; transform: rotate(90deg); }
 
     /* --- Cards & Sections --- */
-    .card {
-      border-radius: var(--radius-md);
-      padding: 28px;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
+    .card { border-radius: var(--radius-md); padding: 28px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
     .card-title { font-size: 18px; font-weight: 600; color: var(--text); }
 
     .folder-row { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; align-items: center; }
     .folder-pills { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; }
-
-    .folder-pill {
-      background: transparent;
-      color: var(--text-muted);
-      padding: 10px 18px;
-      border-radius: var(--radius-sm);
-      border: 1px solid transparent;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
+    .folder-pill { background: transparent; color: var(--text-muted); padding: 10px 18px; border-radius: var(--radius-sm); border: 1px solid transparent; font-weight: 500; transition: all 0.2s; }
     .folder-pill:hover { color: var(--text); background: rgba(128, 128, 128, 0.05); }
-    .folder-pill.active {
-      background: var(--text);
-      color: var(--bg);
-      font-weight: 600;
-      border-color: transparent;
-    }
-
+    .folder-pill.active { background: var(--text); color: var(--bg); font-weight: 600; border-color: transparent; }
     .folder-tools { display: flex; gap: 8px; }
 
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-    }
-
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
     .field { display: flex; flex-direction: column; gap: 8px; }
     .field label { font-size: 13px; font-weight: 500; color: var(--text-muted); }
-    
     .form-footer { display: flex; justify-content: flex-end; gap: 14px; margin-top: 24px; }
 
     .search-wrap { position: relative; width: 320px; max-width: 100%; }
@@ -305,50 +196,21 @@
     .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 16px; color: var(--text-muted); }
 
     /* --- Table --- */
-    .table-container {
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      overflow-x: auto;
-      margin-top: 20px;
-      background: rgba(128, 128, 128, 0.02);
-    }
-
+    .table-container { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow-x: auto; margin-top: 20px; background: rgba(128, 128, 128, 0.02); }
     table { width: 100%; border-collapse: collapse; text-align: left; }
-
-    th {
-      font-size: 13px; font-weight: 500; color: var(--text-muted);
-      padding: 16px 20px; border-bottom: 1px solid var(--border);
-    }
-
-    td {
-      padding: 16px 20px; font-size: 14px;
-      border-bottom: 1px solid rgba(128, 128, 128, 0.08); vertical-align: middle;
-    }
-    
+    th { font-size: 13px; font-weight: 500; color: var(--text-muted); padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    td { padding: 16px 20px; font-size: 14px; border-bottom: 1px solid rgba(128, 128, 128, 0.08); vertical-align: middle; }
     tbody tr { transition: background 0.15s; }
     tbody tr:hover { background: rgba(128, 128, 128, 0.05); }
     tbody tr:last-child td { border-bottom: none; }
-
-    .tag {
-      display: inline-flex; padding: 6px 12px; border-radius: var(--radius-full);
-      background: rgba(128, 128, 128, 0.08); color: var(--text-muted); font-size: 12px; border: 1px solid var(--border);
-    }
-
+    .tag { display: inline-flex; padding: 6px 12px; border-radius: var(--radius-full); background: rgba(128, 128, 128, 0.08); color: var(--text-muted); font-size: 12px; border: 1px solid var(--border); }
+    
     .table-actions { display: flex; gap: 8px; }
-    .btn-action {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 36px; height: 36px; border-radius: var(--radius-sm);
-      background: transparent; border: 1px solid transparent; color: var(--text-muted);
-      transition: all 0.2s;
-    }
+    .btn-action { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--radius-sm); background: transparent; border: 1px solid transparent; color: var(--text-muted); transition: all 0.2s; }
     .btn-action svg { width: 16px; height: 16px; pointer-events: none; }
     .btn-action:hover:not(:disabled) { background: rgba(128, 128, 128, 0.1); border-color: var(--border); color: var(--text); }
-    .btn-action:disabled { opacity: 0.3; cursor: not-allowed; }
-
-    .footer {
-      text-align: center; padding: 32px 0 16px 0; color: var(--text-muted);
-      font-size: 13px; margin-top: auto;
-    }
+    
+    .footer { text-align: center; padding: 32px 0 16px 0; color: var(--text-muted); font-size: 13px; margin-top: auto; }
 
     @media (max-width: 768px) {
       .card-header { flex-direction: column; align-items: flex-start; gap: 16px; }
@@ -359,6 +221,20 @@
   </style>
 </head>
 <body>
+
+  <div id="toastContainer"></div>
+
+  <div id="modalOverlay">
+    <div class="modal-card glass-panel">
+      <h3 id="modalTitle">Confirm Action</h3>
+      <p id="modalDesc"></p>
+      <input type="text" id="modalInput" style="display:none;">
+      <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+        <button class="btn-secondary" id="modalCancel">Cancel</button>
+        <button class="btn-main" id="modalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
 
   <section class="login-shell" id="loginShell">
     <button class="theme-toggle login-theme-toggle" title="Toggle Theme">
@@ -386,15 +262,25 @@
         
         <div style="display: flex; flex-direction: column; gap: 12px;">
           <input type="text" id="authEmail" placeholder="Email address">
-          <input type="password" id="authPassword" placeholder="Password">
+          <div class="input-wrapper">
+            <input type="password" id="authPassword" placeholder="Password">
+            <button type="button" class="icon-btn-absolute" id="toggleAuthPass" title="Show password">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </button>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-top: 2px;">
+            <label style="display:flex; align-items:center; gap:6px; color:var(--text-muted); cursor:pointer;">
+              <input type="checkbox" id="keepSignedIn" checked style="width:auto;"> Keep me signed in
+            </label>
+            <a href="#" id="forgotPassBtn" style="color:var(--text-muted); text-decoration:none; transition:color 0.2s;">Forgot password?</a>
+          </div>
         </div>
         
-        <div class="auth-row">
+        <div class="auth-row" style="margin-top: 4px;">
           <button class="btn-secondary" type="button" id="emailSignupBtn">Create Account</button>
           <button class="btn-main" type="button" id="emailLoginBtn">Sign In</button>
         </div>
-        
-        <div class="status" id="loginStatus"></div>
       </div>
     </div>
   </section>
@@ -406,7 +292,6 @@
       </div>
       <div class="header-actions">
         <div class="pill"><span id="userEmail">Not signed in</span> <span style="margin:0 8px; opacity:0.3;">|</span> <span id="syncStatus" style="color:var(--text);">Waiting</span></div>
-        
         <button class="theme-toggle" id="themeToggleBtn" title="Toggle Theme">
           <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
@@ -419,12 +304,8 @@
       <div class="folder-row">
         <div class="folder-pills" id="folderPills"></div>
         <div class="folder-tools">
-          <button class="btn-icon-only" type="button" id="moveLeftBtn" title="Move Left">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          </button>
-          <button class="btn-icon-only" type="button" id="moveRightBtn" title="Move Right">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </button>
+          <button class="btn-icon-only" type="button" id="moveLeftBtn" title="Move Left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+          <button class="btn-icon-only" type="button" id="moveRightBtn" title="Move Right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
           <div style="width: 1px; background: var(--border); margin: 0 6px;"></div>
           <button class="btn-secondary" type="button" id="addFolderBtn">New Folder</button>
           <button class="btn-secondary" type="button" id="renameFolderBtn">Rename</button>
@@ -450,16 +331,25 @@
           </div>
           <div class="field">
             <label for="clientPassword">Password</label>
-            <input type="text" id="clientPassword" placeholder="Client password">
+            <div class="input-wrapper">
+              <input type="password" id="clientPassword" placeholder="Client password">
+              <button type="button" class="icon-btn-absolute" id="toggleClientPass" title="Show password">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </div>
           </div>
           <div class="field">
             <label for="clientNotes">Notes / Tag</label>
             <input type="text" id="clientNotes" placeholder="Win 10 | Shop PC">
           </div>
+          <div class="field" id="moveFolderWrap" style="display:none;">
+            <label for="clientFolderSelect">Folder</label>
+            <select id="clientFolderSelect"></select>
+          </div>
         </div>
         <div class="form-footer">
           <button class="btn-secondary" type="button" id="clearBtn">Clear</button>
-          <button class="btn-main" type="submit">Save Client</button>
+          <button class="btn-main" type="submit" id="saveClientBtn">Save Client</button>
         </div>
       </form>
     </section>
@@ -493,23 +383,22 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, browserLocalPersistence, createUserWithEmailAndPassword, onAuthStateChanged, setPersistence, signInWithEmailAndPassword, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+    import { getAuth, GoogleAuthProvider, browserLocalPersistence, browserSessionPersistence, createUserWithEmailAndPassword, onAuthStateChanged, setPersistence, signInWithEmailAndPassword, signInWithPopup, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
     import { doc, getDoc, getFirestore, onSnapshot, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
     const STORAGE_KEY = 'rustdesk_clients_folders_v1';
     const THEME_KEY = 'techbugs_theme';
-    const DEFAULT_FOLDERS = [
-      { name: 'Workplace 1', clients: [] },
-      { name: 'Workplace 2', clients: [] }
-    ];
+    const DEFAULT_FOLDERS = [{ name: 'Workplace 1', clients: [] }, { name: 'Workplace 2', clients: [] }];
 
     const ICONS = {
       connect: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
       edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>',
       eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+      eyeOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>',
       delete: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>',
       up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>',
-      down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>'
+      down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>',
+      copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
     };
 
     const embeddedFirebaseConfig = {
@@ -531,6 +420,7 @@
     let lastSavedHash = '';
     let applyingRemoteState = false;
 
+    // DOM Elements
     const loginShell = document.getElementById('loginShell');
     const appShell = document.getElementById('appShell');
     const clientsBody = document.getElementById('clientsBody');
@@ -541,111 +431,129 @@
     const loginStatus = document.getElementById('loginStatus');
     const syncStatus = document.getElementById('syncStatus');
     const userEmail = document.getElementById('userEmail');
-
     const clientName = document.getElementById('clientName');
     const clientId = document.getElementById('clientId');
     const clientPassword = document.getElementById('clientPassword');
     const clientNotes = document.getElementById('clientNotes');
+    const clientFolderSelect = document.getElementById('clientFolderSelect');
+    const moveFolderWrap = document.getElementById('moveFolderWrap');
     const authEmail = document.getElementById('authEmail');
     const authPassword = document.getElementById('authPassword');
 
     // Theme logic
-    if (localStorage.getItem(THEME_KEY) === 'light') {
-      document.body.classList.add('light-mode');
-    }
-
-    const themeToggles = document.querySelectorAll('.theme-toggle');
-    for (let i = 0; i < themeToggles.length; i++) {
-      themeToggles[i].addEventListener('click', () => {
+    if (localStorage.getItem(THEME_KEY) === 'light') document.body.classList.add('light-mode');
+    document.querySelectorAll('.theme-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
         document.body.classList.toggle('light-mode');
         localStorage.setItem(THEME_KEY, document.body.classList.contains('light-mode') ? 'light' : 'dark');
       });
+    });
+
+    // --- Custom UI Feedback (Toasts & Modals) ---
+    function showToast(msg, isError = false) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${isError ? 'error' : ''}`;
+      toast.innerHTML = isError 
+        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span>${msg}</span>`
+        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--border-focus)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
     }
 
-    function setLoginStatus(message, tone = '') {
-      loginStatus.textContent = message || '';
-      loginStatus.className = `status${tone ? ` ${tone}` : ''}`;
+    function openModal(title, desc, isPrompt = false, defaultVal = '') {
+      return new Promise((resolve) => {
+        const overlay = document.getElementById('modalOverlay');
+        const titleEl = document.getElementById('modalTitle');
+        const descEl = document.getElementById('modalDesc');
+        const inputEl = document.getElementById('modalInput');
+        
+        titleEl.textContent = title;
+        descEl.textContent = desc;
+        inputEl.style.display = isPrompt ? 'block' : 'none';
+        inputEl.value = defaultVal;
+        overlay.style.display = 'flex';
+        
+        if (isPrompt) inputEl.focus();
+
+        const cleanup = () => { overlay.style.display = 'none'; };
+
+        document.getElementById('modalConfirm').onclick = () => {
+          cleanup();
+          resolve(isPrompt ? inputEl.value : true);
+        };
+        
+        document.getElementById('modalCancel').onclick = () => {
+          cleanup();
+          resolve(null);
+        };
+      });
     }
 
-    function setSyncStatus(message) {
-      syncStatus.textContent = message;
+    // --- Form & Input Polish ---
+    function togglePassVisibility(inputId, btnId) {
+      const input = document.getElementById(inputId);
+      const btn = document.getElementById(btnId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerHTML = ICONS.eyeOff;
+      } else {
+        input.type = 'password';
+        btn.innerHTML = ICONS.eye;
+      }
+    }
+    document.getElementById('toggleAuthPass').addEventListener('click', () => togglePassVisibility('authPassword', 'toggleAuthPass'));
+    document.getElementById('toggleClientPass').addEventListener('click', () => togglePassVisibility('clientPassword', 'toggleClientPass'));
+
+    function copyToClipboard(text, type) {
+      if (!text) return;
+      navigator.clipboard.writeText(text);
+      showToast(`${type} copied to clipboard`);
     }
 
-    function cloneDefaultFolders() {
-      return DEFAULT_FOLDERS.map((folder) => ({ name: folder.name, clients: [] }));
+    // --- Core Logic ---
+    function getStorageKey() { return activeUser ? `rustdesk_v1_${activeUser.uid}` : STORAGE_KEY; }
+
+    function readLocalData() {
+      try { return sanitizeFolders(JSON.parse(localStorage.getItem(getStorageKey()))); } 
+      catch { return null; }
     }
+
+    function cacheFolders() { localStorage.setItem(getStorageKey(), JSON.stringify(folders)); }
+    function currentFolder() { return folders[currentFolderIndex]; }
+    function showLogin() { loginShell.style.display = 'flex'; appShell.style.display = 'none'; }
+    function showApp() { loginShell.style.display = 'none'; appShell.style.display = 'flex'; clientName.focus(); }
 
     function sanitizeFolders(value) {
       if (!Array.isArray(value) || !value.length) return cloneDefaultFolders();
-      return value.map((folder) => ({
+      return value.map(folder => ({
         name: String(folder?.name || 'Untitled Folder'),
-        clients: Array.isArray(folder?.clients)
-          ? folder.clients.map((client) => ({
-              name: String(client?.name || ''),
-              id: String(client?.id || ''),
-              password: String(client?.password || ''),
-              notes: String(client?.notes || '')
-            }))
-          : []
+        clients: Array.isArray(folder?.clients) ? folder.clients.map(c => ({
+          name: String(c?.name || ''), id: String(c?.id || ''),
+          password: String(c?.password || ''), notes: String(c?.notes || '')
+        })) : []
       }));
-    }
-
-    function getStorageKey() {
-      return activeUser ? `rustdesk_v1_${activeUser.uid}` : STORAGE_KEY;
-    }
-
-    function readLocalData() {
-      const raw = localStorage.getItem(getStorageKey());
-      if (!raw) return null;
-      try {
-        return sanitizeFolders(JSON.parse(raw));
-      } catch {
-        return null;
-      }
-    }
-
-    function cacheFolders() {
-      localStorage.setItem(getStorageKey(), JSON.stringify(folders));
-    }
-
-    function currentFolder() {
-      return folders[currentFolderIndex];
-    }
-
-    function showLogin() {
-      loginShell.style.display = 'flex';
-      appShell.style.display = 'none';
-    }
-
-    function showApp() {
-      loginShell.style.display = 'none';
-      appShell.style.display = 'flex';
-      clientName.focus();
     }
 
     function renderFolders() {
       folderPills.innerHTML = '';
       folders.forEach((folder, index) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = `folder-pill${index === currentFolderIndex ? ' active' : ''}`;
-        button.textContent = folder.name;
-        button.addEventListener('click', () => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `folder-pill${index === currentFolderIndex ? ' active' : ''}`;
+        btn.textContent = folder.name;
+        btn.addEventListener('click', () => {
           currentFolderIndex = index;
           resetForm();
           renderFolders();
           renderTable();
         });
-        folderPills.appendChild(button);
+        folderPills.appendChild(btn);
       });
       folderLabel.textContent = currentFolder()?.name || 'Endpoints';
-    }
-
-    function togglePasswordCell(cell, show) {
-      const hidden = cell.querySelector('.hidden-pass');
-      const real = cell.querySelector('.real-pass');
-      hidden.style.display = show ? 'none' : 'inline';
-      real.style.display = show ? 'inline' : 'none';
     }
 
     function renderTable() {
@@ -654,92 +562,74 @@
       if (!folder) return;
 
       const query = searchBox.value.trim().toLowerCase();
-      const filtered = query
-        ? folder.clients.filter((client) => client.name.toLowerCase().includes(query) || client.id.toLowerCase().includes(query))
-        : folder.clients;
+      const filtered = query ? folder.clients.filter(c => c.name.toLowerCase().includes(query) || c.id.toLowerCase().includes(query)) : folder.clients;
 
       filtered.forEach((client) => {
         const index = folder.clients.indexOf(client);
         const row = document.createElement('tr');
 
+        // Password Cell setup
         const passwordCell = document.createElement('td');
         passwordCell.style.fontFamily = "monospace";
-        passwordCell.innerHTML = '<span class="hidden-pass">••••••••</span><span class="real-pass" style="display:none"></span>';
+        passwordCell.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="hidden-pass">••••••••</span><span class="real-pass" style="display:none"></span>
+            ${client.password ? `<button class="btn-icon-micro" title="Copy Password">${ICONS.copy}</button>` : ''}
+          </div>`;
         passwordCell.querySelector('.real-pass').textContent = client.password;
+        if(client.password) {
+          passwordCell.querySelector('.btn-icon-micro').addEventListener('click', () => copyToClipboard(client.password, 'Password'));
+        }
 
+        // Actions setup
         const actions = document.createElement('td');
         const actionWrap = document.createElement('div');
         actionWrap.className = 'table-actions';
 
         const connectBtn = document.createElement('button');
-        connectBtn.type = 'button';
-        connectBtn.className = 'btn-action';
-        connectBtn.innerHTML = ICONS.connect;
-        connectBtn.title = 'Connect';
-        connectBtn.addEventListener('click', () => {
-          if (client.id) window.location.href = `rustdesk://${encodeURIComponent(client.id)}`;
-        });
+        connectBtn.className = 'btn-action'; connectBtn.innerHTML = ICONS.connect; connectBtn.title = 'Connect';
+        connectBtn.addEventListener('click', () => { if (client.id) window.location.href = `rustdesk://${encodeURIComponent(client.id.replace(/\s+/g, ''))}`; });
 
         const upBtn = document.createElement('button');
-        upBtn.type = 'button';
-        upBtn.className = 'btn-action';
-        upBtn.innerHTML = ICONS.up;
-        upBtn.title = 'Move Up';
-        upBtn.disabled = index === 0 || query !== ''; 
+        upBtn.className = 'btn-action'; upBtn.innerHTML = ICONS.up; upBtn.disabled = index === 0 || query !== '';
         upBtn.addEventListener('click', async () => {
           if (index > 0 && !query) {
             [folder.clients[index], folder.clients[index - 1]] = [folder.clients[index - 1], folder.clients[index]];
-            if (editIndex === index) editIndex = index - 1;
-            else if (editIndex === index - 1) editIndex = index;
-            await persistFolders();
-            renderTable();
+            if (editIndex === index) editIndex = index - 1; else if (editIndex === index - 1) editIndex = index;
+            await persistFolders(); renderTable();
           }
         });
 
         const downBtn = document.createElement('button');
-        downBtn.type = 'button';
-        downBtn.className = 'btn-action';
-        downBtn.innerHTML = ICONS.down;
-        downBtn.title = 'Move Down';
-        downBtn.disabled = index === folder.clients.length - 1 || query !== ''; 
+        downBtn.className = 'btn-action'; downBtn.innerHTML = ICONS.down; downBtn.disabled = index === folder.clients.length - 1 || query !== '';
         downBtn.addEventListener('click', async () => {
           if (index < folder.clients.length - 1 && !query) {
             [folder.clients[index], folder.clients[index + 1]] = [folder.clients[index + 1], folder.clients[index]];
-            if (editIndex === index) editIndex = index + 1;
-            else if (editIndex === index + 1) editIndex = index;
-            await persistFolders();
-            renderTable();
+            if (editIndex === index) editIndex = index + 1; else if (editIndex === index + 1) editIndex = index;
+            await persistFolders(); renderTable();
           }
         });
 
         const editBtn = document.createElement('button');
-        editBtn.type = 'button';
-        editBtn.className = 'btn-action';
-        editBtn.innerHTML = ICONS.edit;
-        editBtn.title = 'Edit';
+        editBtn.className = 'btn-action'; editBtn.innerHTML = ICONS.edit; editBtn.title = 'Edit';
         editBtn.addEventListener('click', () => loadIntoForm(index));
 
         const eyeBtn = document.createElement('button');
-        eyeBtn.type = 'button';
-        eyeBtn.className = 'btn-action';
-        eyeBtn.innerHTML = ICONS.eye;
-        eyeBtn.title = 'Show password';
-        eyeBtn.addEventListener('mousedown', () => togglePasswordCell(passwordCell, true));
-        eyeBtn.addEventListener('mouseup', () => togglePasswordCell(passwordCell, false));
-        eyeBtn.addEventListener('mouseleave', () => togglePasswordCell(passwordCell, false));
+        eyeBtn.className = 'btn-action'; eyeBtn.innerHTML = ICONS.eye; eyeBtn.title = 'Show password';
+        eyeBtn.addEventListener('mousedown', () => { passwordCell.querySelector('.hidden-pass').style.display = 'none'; passwordCell.querySelector('.real-pass').style.display = 'inline'; });
+        eyeBtn.addEventListener('mouseup', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; });
+        eyeBtn.addEventListener('mouseleave', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; });
 
         const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'btn-action';
-        deleteBtn.style.color = 'var(--danger)';
-        deleteBtn.innerHTML = ICONS.delete;
-        deleteBtn.title = 'Delete';
+        deleteBtn.className = 'btn-action'; deleteBtn.style.color = 'var(--danger)'; deleteBtn.innerHTML = ICONS.delete; deleteBtn.title = 'Delete';
         deleteBtn.addEventListener('click', async () => {
-          if (!confirm(`Delete "${client.name || client.id}" from "${folder.name}"?`)) return;
+          const confirmDel = await openModal('Delete Client', `Are you sure you want to delete "${client.name}"?`);
+          if (!confirmDel) return;
           folder.clients.splice(index, 1);
           if (editIndex === index) resetForm();
           await persistFolders();
           renderTable();
+          showToast('Client deleted');
         });
 
         actionWrap.append(connectBtn, upBtn, downBtn, editBtn, eyeBtn, deleteBtn);
@@ -747,7 +637,12 @@
 
         row.innerHTML = `
           <td style="font-weight:500; color:var(--text);">${escapeHtml(client.name)}</td>
-          <td style="font-family:monospace;">${escapeHtml(client.id)}</td>
+          <td style="font-family:monospace;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              ${escapeHtml(client.id)}
+              <button class="btn-icon-micro" title="Copy ID" onclick="navigator.clipboard.writeText('${client.id.replace(/'/g, "\\'")}'); document.getElementById('toastContainer').appendChild(Object.assign(document.createElement('div'),{className:'toast',innerHTML:'<span>ID copied to clipboard</span>', style:'animation:slideIn 0.3s forwards'})); setTimeout(()=>document.getElementById('toastContainer').lastChild.remove(), 3500);">${ICONS.copy}</button>
+            </div>
+          </td>
           <td></td>
           <td>${client.notes ? `<span class="tag">${escapeHtml(client.notes)}</span>` : ''}</td>
         `;
@@ -757,50 +652,45 @@
       });
     }
 
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
-    }
+    function escapeHtml(value) { return String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
 
     function resetForm() {
-      clientName.value = '';
-      clientId.value = '';
-      clientPassword.value = '';
-      clientNotes.value = '';
-      editIndex = null;
-      modeTag.textContent = 'New entry';
+      clientName.value = ''; clientId.value = ''; clientPassword.value = ''; clientNotes.value = '';
+      editIndex = null; modeTag.textContent = 'New entry';
+      moveFolderWrap.style.display = 'none';
+      document.getElementById('saveClientBtn').textContent = 'Save Client';
     }
 
     function loadIntoForm(index) {
       const client = currentFolder()?.clients[index];
       if (!client) return;
       editIndex = index;
-      clientName.value = client.name;
-      clientId.value = client.id;
-      clientPassword.value = client.password;
-      clientNotes.value = client.notes;
+      clientName.value = client.name; clientId.value = client.id;
+      clientPassword.value = client.password; clientNotes.value = client.notes;
       modeTag.textContent = `Editing #${index + 1}`;
+      document.getElementById('saveClientBtn').textContent = 'Update Client';
+      
+      // Setup Move Folder Select
+      clientFolderSelect.innerHTML = '';
+      folders.forEach((f, i) => {
+        const opt = document.createElement('option');
+        opt.value = i; opt.textContent = f.name;
+        if(i === currentFolderIndex) opt.selected = true;
+        clientFolderSelect.appendChild(opt);
+      });
+      moveFolderWrap.style.display = 'flex';
       clientName.focus();
     }
 
     async function persistFolders() {
       cacheFolders();
       if (!activeUser || !db || applyingRemoteState) return;
-
       const payloadHash = JSON.stringify(folders);
       if (payloadHash === lastSavedHash) return;
 
       lastSavedHash = payloadHash;
       setSyncStatus('Syncing...');
-      await setDoc(doc(db, 'directories', activeUser.uid), {
-        folders,
-        ownerEmail: activeUser.email || '',
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      await setDoc(doc(db, 'directories', activeUser.uid), { folders, ownerEmail: activeUser.email || '', updatedAt: serverTimestamp() }, { merge: true });
       setSyncStatus('Synced');
     }
 
@@ -808,11 +698,8 @@
       const docRef = doc(db, 'directories', user.uid);
       const snapshot = await getDoc(docRef);
       const remoteFolders = snapshot.exists() ? sanitizeFolders(snapshot.data().folders) : null;
-      
       const localFolders = readLocalData(); 
-
       folders = remoteFolders || localFolders || cloneDefaultFolders();
-      
       cacheFolders();
       await persistFolders();
     }
@@ -823,22 +710,12 @@
         if (!snapshot.exists()) return;
         const nextFolders = sanitizeFolders(snapshot.data().folders);
         const nextHash = JSON.stringify(nextFolders);
-        if (nextHash === JSON.stringify(folders)) {
-          lastSavedHash = nextHash;
-          setSyncStatus('Synced');
-          return;
-        }
-
+        if (nextHash === JSON.stringify(folders)) { lastSavedHash = nextHash; setSyncStatus('Synced'); return; }
         applyingRemoteState = true;
-        folders = nextFolders;
-        lastSavedHash = nextHash;
+        folders = nextFolders; lastSavedHash = nextHash;
         if (currentFolderIndex >= folders.length) currentFolderIndex = 0;
-        cacheFolders();
-        resetForm();
-        renderFolders();
-        renderTable();
-        applyingRemoteState = false;
-        setSyncStatus('Synced');
+        cacheFolders(); resetForm(); renderFolders(); renderTable();
+        applyingRemoteState = false; setSyncStatus('Synced');
       });
     }
 
@@ -846,156 +723,68 @@
       const nextIndex = currentFolderIndex + direction;
       if (nextIndex < 0 || nextIndex >= folders.length) return;
       [folders[currentFolderIndex], folders[nextIndex]] = [folders[nextIndex], folders[currentFolderIndex]];
-      currentFolderIndex = nextIndex;
-      await persistFolders();
-      renderFolders();
-      renderTable();
+      currentFolderIndex = nextIndex; await persistFolders(); renderFolders(); renderTable();
     }
 
     async function addFolder() {
-      const name = prompt('Folder name (e.g. Workplace A):');
-      if (!name) return;
+      const name = await openModal('New Folder', 'Enter a name for the new folder:', true);
+      if (!name || !name.trim()) return;
       folders.push({ name: name.trim(), clients: [] });
       currentFolderIndex = folders.length - 1;
-      await persistFolders();
-      renderFolders();
-      renderTable();
+      await persistFolders(); renderFolders(); renderTable(); showToast('Folder created');
     }
 
     async function renameFolder() {
-      const folder = currentFolder();
-      if (!folder) return;
-      const name = prompt('New folder name:', folder.name);
-      if (!name) return;
-      folder.name = name.trim();
-      await persistFolders();
-      renderFolders();
-      renderTable();
+      const cf = currentFolder(); if (!cf) return;
+      const name = await openModal('Rename Folder', 'Enter a new name:', true, cf.name);
+      if (!name || !name.trim()) return;
+      cf.name = name.trim();
+      await persistFolders(); renderFolders(); renderTable(); showToast('Folder renamed');
     }
 
     async function deleteFolder() {
-      if (folders.length <= 1) {
-        alert('At least one folder is required.');
-        return;
-      }
-      const folder = currentFolder();
-      if (!folder) return;
-      if (!confirm(`Delete folder "${folder.name}" and all its clients?`)) return;
+      if (folders.length <= 1) { showToast('At least one folder is required.', true); return; }
+      const cf = currentFolder(); if (!cf) return;
+      const confirmed = await openModal('Delete Folder', `Are you sure you want to delete "${cf.name}" and all its clients?`);
+      if (!confirmed) return;
       folders.splice(currentFolderIndex, 1);
       if (currentFolderIndex >= folders.length) currentFolderIndex = folders.length - 1;
-      resetForm();
-      await persistFolders();
-      renderFolders();
-      renderTable();
+      resetForm(); await persistFolders(); renderFolders(); renderTable(); showToast('Folder deleted');
     }
 
-    // --- REVERTED TO PREVIOUS WORKING ASYNC LOGIN LOGIC ---
-    
-    async function signInWithGoogle() {
-      setLoginStatus('Opening Google sign-in...');
-      await signInWithPopup(auth, new GoogleAuthProvider());
-    }
-
-    async function signInWithEmail() {
-      const email = authEmail.value.trim();
-      const password = authPassword.value;
-      if (!email || !password) {
-        setLoginStatus('Enter your email and password first.', 'error');
-        return;
-      }
-      setLoginStatus('Signing you in...');
-      await signInWithEmailAndPassword(auth, email, password);
-    }
-
-    async function createAccount() {
-      const email = authEmail.value.trim();
-      const password = authPassword.value;
-      if (!email || !password) {
-        setLoginStatus('Enter an email and password to create the account.', 'error');
-        return;
-      }
-      if (password.length < 6) {
-        setLoginStatus('Password must be at least 6 characters.', 'error');
-        return;
-      }
-      setLoginStatus('Creating your account...');
-      await createUserWithEmailAndPassword(auth, email, password);
-    }
-
-    async function logout() {
-      if (auth) await signOut(auth);
-      
-      folders = cloneDefaultFolders();
-      currentFolderIndex = 0;
-      editIndex = null;
-      lastSavedHash = '';
-      authEmail.value = '';
-      authPassword.value = '';
-      resetForm();
-      renderFolders();
-      renderTable();
-    }
-
-    async function initializeFirebase() {
-      folders = cloneDefaultFolders();
-      renderFolders();
-      renderTable();
-      showLogin();
-
-      const app = initializeApp(embeddedFirebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-      await setPersistence(auth, browserLocalPersistence);
-
-      onAuthStateChanged(auth, async (user) => {
-        activeUser = user;
-
-        if (!user) {
-          if (unsubscribeSnapshot) {
-            unsubscribeSnapshot();
-            unsubscribeSnapshot = null;
-          }
-          userEmail.textContent = 'Not signed in';
-          setSyncStatus('Waiting');
-          showLogin();
-          return;
-        }
-
-        userEmail.textContent = user.email || 'Google account';
-        setSyncStatus('Loading...');
-        await bootstrapUserData(user);
-        subscribeToDirectory(user);
-        renderFolders();
-        renderTable();
-        setSyncStatus('Synced');
-        setLoginStatus('', 'success');
-        showApp();
-      });
-    }
-
+    // --- Form Submission (Validation + Trim) ---
     document.getElementById('clientForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const folder = currentFolder();
-      if (!folder) {
-        alert('Create a folder first.');
-        return;
-      }
+      if (!folder) { showToast('Create a folder first.', true); return; }
 
       const name = clientName.value.trim();
-      const id = clientId.value.trim();
+      const id = clientId.value.trim(); // Leaves internal spaces for readability, trims edges
       const password = clientPassword.value.trim();
       const notes = clientNotes.value.trim();
 
-      if (!name || !id) {
-        alert('Client name and ID are required.');
-        return;
-      }
+      if (!name || !id) { showToast('Client Name and ID are required.', true); return; }
+
+      // Duplicate Check
+      const isDup = folder.clients.some((c, i) => i !== editIndex && (c.id === id || c.name === name));
+      if (isDup) { showToast('A client with this Name or ID already exists here.', true); return; }
 
       const payload = { name, id, password, notes };
+      
       if (editIndex === null) {
         folder.clients.push(payload);
+        showToast('Client saved');
       } else {
-        folder.clients[editIndex] = payload;
+        // Handle Move Client Dropdown
+        const targetFolderIdx = parseInt(clientFolderSelect.value);
+        if (targetFolderIdx !== currentFolderIndex) {
+          folders[targetFolderIdx].clients.push(payload);
+          folder.clients.splice(editIndex, 1);
+          showToast(`Client moved to ${folders[targetFolderIdx].name}`);
+        } else {
+          folder.clients[editIndex] = payload;
+          showToast('Client updated');
+        }
       }
 
       await persistFolders();
@@ -1004,8 +793,89 @@
       clientName.focus();
     });
 
-    searchBox.addEventListener('input', renderTable);
+    // --- Authentication ---
+    async function handleAuthAction(btnId, actionFn) {
+      const btn = document.getElementById(btnId);
+      const originalText = btn.textContent;
+      btn.textContent = 'Loading...'; btn.disabled = true;
+      setLoginStatus('');
+      
+      try {
+        const keepSignedIn = document.getElementById('keepSignedIn').checked;
+        await setPersistence(auth, keepSignedIn ? browserLocalPersistence : browserSessionPersistence);
+        await actionFn();
+      } catch (error) {
+        setLoginStatus(error.message, 'error');
+        btn.textContent = originalText; btn.disabled = false;
+      }
+    }
+
+    document.getElementById('googleLoginBtn').addEventListener('click', () => {
+      handleAuthAction('googleLoginBtn', () => signInWithPopup(auth, new GoogleAuthProvider()));
+    });
+
+    document.getElementById('emailLoginBtn').addEventListener('click', () => {
+      const email = authEmail.value.trim(); const password = authPassword.value;
+      if (!email || !password) { setLoginStatus('Enter email and password.', 'error'); return; }
+      handleAuthAction('emailLoginBtn', () => signInWithEmailAndPassword(auth, email, password));
+    });
+
+    document.getElementById('emailSignupBtn').addEventListener('click', () => {
+      const email = authEmail.value.trim(); const password = authPassword.value;
+      if (!email || !password) { setLoginStatus('Enter email and password.', 'error'); return; }
+      if (password.length < 6) { setLoginStatus('Password must be 6+ chars.', 'error'); return; }
+      handleAuthAction('emailSignupBtn', () => createUserWithEmailAndPassword(auth, email, password));
+    });
+
+    document.getElementById('forgotPassBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      const email = authEmail.value.trim();
+      if (!email) { setLoginStatus('Enter your email in the box first to reset password.', 'error'); return; }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        setLoginStatus('Password reset email sent!', 'success');
+      } catch (error) { setLoginStatus(error.message, 'error'); }
+    });
+
+    authPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('emailLoginBtn').click(); } });
+
+    async function logout() {
+      document.getElementById('logoutBtn').textContent = 'Logging out...';
+      if (auth) await signOut(auth);
+      folders = cloneDefaultFolders(); currentFolderIndex = 0; editIndex = null; lastSavedHash = '';
+      authEmail.value = ''; authPassword.value = '';
+      resetForm(); renderFolders(); renderTable();
+      document.getElementById('logoutBtn').textContent = 'Log out';
+      ['googleLoginBtn', 'emailLoginBtn', 'emailSignupBtn'].forEach(id => { 
+        const b = document.getElementById(id); b.disabled = false; 
+        if(id === 'googleLoginBtn') b.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Continue with Google';
+        if(id === 'emailLoginBtn') b.textContent = 'Sign In';
+        if(id === 'emailSignupBtn') b.textContent = 'Create Account';
+      });
+    }
     document.getElementById('logoutBtn').addEventListener('click', logout);
+
+    async function initializeFirebase() {
+      folders = cloneDefaultFolders(); renderFolders(); renderTable(); showLogin();
+      const app = initializeApp(embeddedFirebaseConfig);
+      auth = getAuth(app); db = getFirestore(app);
+
+      onAuthStateChanged(auth, async (user) => {
+        activeUser = user;
+        if (!user) {
+          if (unsubscribeSnapshot) { unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+          userEmail.textContent = 'Not signed in'; setSyncStatus('Waiting'); showLogin(); return;
+        }
+        userEmail.textContent = user.email || 'Google account';
+        setSyncStatus('Loading...');
+        await bootstrapUserData(user);
+        subscribeToDirectory(user);
+        renderFolders(); renderTable();
+        setSyncStatus('Synced'); setLoginStatus('', 'success'); showApp();
+      });
+    }
+
+    searchBox.addEventListener('input', renderTable);
     document.getElementById('clearBtn').addEventListener('click', resetForm);
     document.getElementById('moveLeftBtn').addEventListener('click', () => moveFolder(-1));
     document.getElementById('moveRightBtn').addEventListener('click', () => moveFolder(1));
@@ -1013,22 +883,6 @@
     document.getElementById('renameFolderBtn').addEventListener('click', renameFolder);
     document.getElementById('deleteFolderBtn').addEventListener('click', deleteFolder);
     
-    document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-      try { await signInWithGoogle(); } catch (error) { setLoginStatus(error.message, 'error'); }
-    });
-    document.getElementById('emailLoginBtn').addEventListener('click', async () => {
-      try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); }
-    });
-    document.getElementById('emailSignupBtn').addEventListener('click', async () => {
-      try { await createAccount(); } catch (error) { setLoginStatus(error.message, 'error'); }
-    });
-    authPassword.addEventListener('keydown', async (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); }
-      }
-    });
-
     initializeFirebase();
   </script>
 </body>
