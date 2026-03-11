@@ -29,17 +29,17 @@
     }
 
     body.light-mode {
-      --bg: #e4e4e7; /* Soft, muted gray (non-irritating) */
-      --surface: rgba(255, 255, 255, 0.65); /* Translucent light glass */
-      --surface-hover: rgba(255, 255, 255, 0.9);
-      --border: rgba(0, 0, 0, 0.08); 
-      --border-focus: rgba(0, 0, 0, 0.25);
-      --primary-bg: #18181b; /* Stark black for light mode buttons */
+      --bg: #f4f5f7; /* TickTick's soothing off-white/gray */
+      --surface: rgba(255, 255, 255, 0.85); /* Frosty but glare-free */
+      --surface-hover: rgba(255, 255, 255, 1);
+      --border: rgba(0, 0, 0, 0.06); 
+      --border-focus: rgba(0, 0, 0, 0.2);
+      --primary-bg: #2a2a2a; /* Softer black to reduce contrast strain */
       --primary-text: #ffffff;
-      --primary-hover: #27272a;
-      --text: #18181b; 
-      --text-muted: #52525b; 
-      --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.05);
+      --primary-hover: #000000;
+      --text: #242424; /* TickTick's dark gray text instead of pure black */
+      --text-muted: #737373; 
+      --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.04);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,14 +51,12 @@
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       transition: background-color 0.3s, color 0.3s;
-      /* Subtle mesh gradient background */
       background-image: 
         radial-gradient(at 0% 0%, rgba(128, 128, 128, 0.05) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(128, 128, 128, 0.05) 0px, transparent 50%);
       background-attachment: fixed;
     }
 
-    /* Glassmorphism Core Class */
     .glass-panel {
       background: var(--surface);
       backdrop-filter: blur(16px);
@@ -134,6 +132,13 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
+      position: relative;
+    }
+
+    .login-theme-toggle {
+      position: absolute;
+      top: 24px;
+      right: 24px;
     }
 
     .login-card {
@@ -276,7 +281,7 @@
     }
     .folder-pill:hover { color: var(--text); background: rgba(128, 128, 128, 0.05); }
     .folder-pill.active {
-      background: var(--text); /* Inverts text and bg for active state */
+      background: var(--text);
       color: var(--bg);
       font-weight: 600;
       border-color: transparent;
@@ -356,6 +361,10 @@
 <body>
 
   <section class="login-shell" id="loginShell">
+    <button class="theme-toggle login-theme-toggle" title="Toggle Theme">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+    </button>
     <div class="login-card glass-panel">
       <div class="login-header">
         <h2>RustDesk Address Book</h2>
@@ -545,9 +554,12 @@
       document.body.classList.add('light-mode');
     }
 
-    document.getElementById('themeToggleBtn').addEventListener('click', () => {
-      document.body.classList.toggle('light-mode');
-      localStorage.setItem(THEME_KEY, document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    const themeToggles = document.querySelectorAll('.theme-toggle');
+    themeToggles.forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+        localStorage.setItem(THEME_KEY, document.body.classList.contains('light-mode') ? 'light' : 'dark');
+      });
     });
 
     function setLoginStatus(message, tone = '') {
