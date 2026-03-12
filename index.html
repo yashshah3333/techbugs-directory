@@ -89,9 +89,7 @@
     .btn-icon-only { padding: 8px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: var(--radius-sm); }
     .btn-icon-only:hover:not(:disabled) { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border-focus); }
     .btn-icon-only svg { width: 16px !important; height: 16px !important; pointer-events: none;}
-    
     .btn-action svg { width: 16px !important; height: 16px !important; pointer-events: none; }
-    
     .btn-icon-micro { padding: 6px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: 4px; display: inline-flex; cursor: pointer;}
     .btn-icon-micro:hover { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border); }
     .btn-icon-micro svg { width: 14px !important; height: 14px !important; pointer-events: none;}
@@ -613,8 +611,10 @@
         } else {
             badge.style.display = 'inline';
             badge.textContent = role.toUpperCase();
-            badge.style.background = (role === 'editor') ? 'var(--primary)' : 'var(--text-muted)';
-            badge.style.color = (role === 'editor') ? 'white' : 'var(--bg)';
+            
+            // Both Editor and Viewer now get the clean neutral styling
+            badge.style.background = 'var(--text-muted)';
+            badge.style.color = 'var(--bg)';
             
             document.getElementById('shareFolderBtn').style.display = 'none';
             document.getElementById('renameFolderBtn').style.display = 'none';
@@ -809,8 +809,21 @@
                 
                 const eyeBtn = document.createElement('button');
                 eyeBtn.className = 'btn-icon-micro action-eyekey';
-                eyeBtn.title = 'Toggle Key';
+                eyeBtn.title = 'Show key';
                 eyeBtn.innerHTML = ICONS.eye;
+                
+                // Pure Click Toggle for Table Rows
+                eyeBtn.onclick = () => {
+                    if (hiddenSpan.style.display === 'none') {
+                        hiddenSpan.style.display = 'inline';
+                        realSpan.style.display = 'none';
+                        eyeBtn.innerHTML = ICONS.eye;
+                    } else {
+                        hiddenSpan.style.display = 'none';
+                        realSpan.style.display = 'inline';
+                        eyeBtn.innerHTML = ICONS.eyeOff;
+                    }
+                };
                 
                 const copyPassBtn = document.createElement('button');
                 copyPassBtn.className = 'btn-icon-micro action-copykey';
@@ -893,7 +906,7 @@
       });
     }
 
-    // --- Share Folder Logic ---
+    // --- Share Folder Logic (With Dynamic Role Selector) ---
     function renderShareTable() {
       const tb = document.getElementById('shareMembersBody');
       const cf = currentFolder();
@@ -904,11 +917,30 @@
          const role = cf.members[email];
          const row = document.createElement('tr');
          
+         const isEditor = role === 'editor' ? 'selected' : '';
+         const isViewer = role === 'viewer' ? 'selected' : '';
+         
          row.innerHTML = `
             <td>${escapeHtml(email)}</td>
-            <td style="text-transform:capitalize;">${escapeHtml(role)}</td>
+            <td>
+                <select class="member-role-select" style="padding: 4px 8px; font-size: 13px; width: auto; background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 4px; cursor: pointer; outline: none; appearance: none;">
+                    <option value="editor" ${isEditor} style="background: var(--bg); color: var(--text);">Editor</option>
+                    <option value="viewer" ${isViewer} style="background: var(--bg); color: var(--text);">Viewer</option>
+                </select>
+            </td>
             <td><button class="btn-icon-micro rm-btn" style="color:var(--danger);" title="Remove User">${ICONS.userRemove}</button></td>
          `;
+         
+         // Attach listener to update role for existing members
+         row.querySelector('.member-role-select').addEventListener('change', async (e) => {
+             const newRole = e.target.value;
+             const ref = doc(db, 'folders', cf.id);
+             let newMembers = {...cf.members};
+             newMembers[email] = newRole;
+             await updateDoc(ref, { members: newMembers });
+             cf.members = newMembers;
+             showToast('Role updated');
+         });
          
          row.querySelector('.rm-btn').addEventListener('click', async () => {
              const confirmed = await openModal('Remove User', `Revoke access for ${email}?`);
@@ -1166,211 +1198,194 @@
       window.location.reload(); 
     }
     
-    // --- Core Initializer ---
-    // All UI bindings are applied synchronously so no buttons miss their click events
-    bindEvent('openAddClientModalBtn', 'click', () => openClientModal(false));
-    bindEvent('closeClientModalBtn', 'click', closeClientModal);
-    bindEvent('cancelClientBtn', 'click', closeClientModal);
-    bindEvent('shareFolderBtn', 'click', openShareModal);
-    bindEvent('closeShareModalBtn', 'click', closeShareModal);
-    bindEvent('searchBox', 'input', renderTable);
-    bindEvent('clearBtn', 'click', resetForm);
-    bindEvent('moveLeftBtn', 'click', () => moveFolder(-1));
-    bindEvent('moveRightBtn', 'click', () => moveFolder(1));
-    bindEvent('addFolderBtn', 'click', addFolder);
-    bindEvent('renameFolderBtn', 'click', renameFolder);
-    bindEvent('deleteFolderBtn', 'click', deleteFolder);
-    bindEvent('saveClientBtn', 'click', saveClientHandler);
-    bindEvent('logoutBtn', 'click', logout);
-    bindEvent('googleLoginBtn', 'click', signInWithGoogle);
-    bindEvent('emailLoginBtn', 'click', signInWithEmail);
-    bindEvent('emailSignupBtn', 'click', createAccount);
-    bindEvent('forgotPassBtn', 'click', async (e) => { e.preventDefault(); resetPassword(); });
-
-    bindEvent('inviteUserBtn', 'click', async () => {
-        const cf = currentFolder();
-        if(!cf) return;
-        const email = document.getElementById('val_em_share').value.trim().toLowerCase();
-        const role = document.getElementById('shareRoleInput').value;
-        if(!email) { showToast('Enter an email address', true); return; }
+    // --- Core Bindings & Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        bindEvent('openAddClientModalBtn', 'click', () => openClientModal(false));
+        bindEvent('closeClientModalBtn', 'click', closeClientModal);
+        bindEvent('cancelClientBtn', 'click', closeClientModal);
+        bindEvent('shareFolderBtn', 'click', openShareModal);
+        bindEvent('closeShareModalBtn', 'click', closeShareModal);
+        bindEvent('searchBox', 'input', renderTable);
+        bindEvent('clearBtn', 'click', resetForm);
+        bindEvent('moveLeftBtn', 'click', () => moveFolder(-1));
+        bindEvent('moveRightBtn', 'click', () => moveFolder(1));
+        bindEvent('addFolderBtn', 'click', addFolder);
+        bindEvent('renameFolderBtn', 'click', renameFolder);
+        bindEvent('deleteFolderBtn', 'click', deleteFolder);
+        bindEvent('saveClientBtn', 'click', saveClientHandler);
+        bindEvent('logoutBtn', 'click', logout);
+        bindEvent('googleLoginBtn', 'click', async () => { try { await signInWithGoogle(); } catch (error) { setLoginStatus(error.message, 'error'); } });
+        bindEvent('emailLoginBtn', 'click', async () => { try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); } });
+        bindEvent('emailSignupBtn', 'click', async () => { try { await createAccount(); } catch (error) { setLoginStatus(error.message, 'error'); } });
+        bindEvent('forgotPassBtn', 'click', async (e) => { e.preventDefault(); try { await resetPassword(); } catch (error) { setLoginStatus(error.message, 'error'); } });
         
-        let newMembers = {...(cf.members || {})};
-        newMembers[email] = role;
-        let newShared = [...(cf.sharedWith || [])];
-        if(!newShared.includes(email)) newShared.push(email);
-
-        const ref = doc(db, 'folders', cf.id);
-        await updateDoc(ref, { members: newMembers, sharedWith: newShared });
-        
-        cf.members = newMembers; cf.sharedWith = newShared;
-        
-        lastInvitedEmail = email; // Cache the email for the clipboard before we delete it!
-        document.getElementById('val_em_share').value = '';
-        
-        renderShareTable();
-        showToast('User granted access!');
-    });
-
-    bindEvent('copyInviteLinkBtn', 'click', (e) => {
-        e.preventDefault();
-        const cf = currentFolder();
-        if(!cf) return;
-        
-        // Grab what's typed in the box, or fall back to the last successfully invited email
-        const boxEmail = document.getElementById('val_em_share').value.trim().toLowerCase();
-        const targetEmail = boxEmail || lastInvitedEmail;
-        
-        const emailPrefix = targetEmail ? `Please log in with your email id: ${targetEmail}\n\n` : ``;
-        const msg = `${emailPrefix}You have been invited to access the "${cf.name}" folder on the TechBugs RustDesk Directory. Log in to view the endpoints: ${window.location.href}`;
-        copyToClipboard(msg, 'Invite Link');
-    });
-
-    bindEvent('keepSignedIn', 'change', async (e) => {
-        if(auth) { try { await setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence); } catch (error) { console.error(error); } }
-    });
-
-    bindEvent('toggleAuthPass', 'click', () => {
-        const input = document.getElementById('authPassword');
-        const btn = document.getElementById('toggleAuthPass');
-        if (input.type === 'password') { input.type = 'text'; btn.innerHTML = ICONS.eyeOff; } 
-        else { input.type = 'password'; btn.innerHTML = ICONS.eye; }
-    });
-
-    bindEvent('toggleClientPass', 'click', () => {
-        const input = document.getElementById('val_s');
-        const btn = document.getElementById('toggleClientPass');
-        if (input.classList.contains('mask-pw')) {
-            input.classList.remove('mask-pw');
-            btn.innerHTML = ICONS.eyeOff;
-        } else { 
-            input.classList.add('mask-pw');
-            btn.innerHTML = ICONS.eye; 
-        }
-    });
-    
-    // Auth password enter listener
-    const authPwBox = document.getElementById('authPassword');
-    if(authPwBox) {
-        authPwBox.addEventListener('keydown', async (event) => { 
-            if (event.key === 'Enter') { 
-                event.preventDefault(); 
-                signInWithEmail();
-            } 
-        });
-    }
-
-    // Modal Enter keys
-    ['val_n', 'val_i', 'val_s', 'val_t'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) {
-            el.addEventListener('keydown', (e) => {
-                if(e.key === 'Enter') {
-                    e.preventDefault();
-                    if (!document.getElementById('saveClientBtn').disabled) {
-                        document.getElementById('saveClientBtn').click();
-                    }
-                }
+        const authPwBox = document.getElementById('authPassword');
+        if(authPwBox) {
+            authPwBox.addEventListener('keydown', async (event) => { 
+                if (event.key === 'Enter') { 
+                    event.preventDefault(); 
+                    try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); } 
+                } 
             });
         }
-    });
 
-    document.addEventListener('keydown', (e) => {
-        if(e.key === 'Escape') {
-            closeClientModal();
-            closeShareModal();
-            const mo = document.getElementById('modalOverlay');
-            if(mo) mo.style.display = 'none';
-        }
-        if(e.key === 'Enter') {
-            const mo = document.getElementById('modalOverlay');
-            if(mo && mo.style.display === 'flex') {
-                e.preventDefault();
-                const confirmBtn = document.getElementById('modalConfirm');
-                if(confirmBtn) confirmBtn.click();
-            }
-        }
-    });
-
-    const shareRoleWrap = document.getElementById('shareRoleWrap');
-    const shareRoleTrigger = document.getElementById('shareRoleTrigger');
-    const shareRoleInput = document.getElementById('shareRoleInput');
-    const shareRoleLabel = document.getElementById('shareRoleLabel');
-
-    if(shareRoleWrap && shareRoleTrigger) {
-        shareRoleTrigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            shareRoleWrap.classList.toggle('open');
+        bindEvent('keepSignedIn', 'change', async (e) => {
+          if(auth) { try { await setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence); } catch (error) { console.error(error); } }
         });
-        document.querySelectorAll('.custom-option').forEach(opt => {
-            opt.addEventListener('click', (e) => {
+
+        bindEvent('toggleAuthPass', 'click', () => {
+          const input = document.getElementById('authPassword');
+          const btn = document.getElementById('toggleAuthPass');
+          if (input.type === 'password') { input.type = 'text'; btn.innerHTML = ICONS.eyeOff; } 
+          else { input.type = 'password'; btn.innerHTML = ICONS.eye; }
+        });
+
+        bindEvent('toggleClientPass', 'click', () => {
+          const input = document.getElementById('val_s');
+          const btn = document.getElementById('toggleClientPass');
+          if (input.classList.contains('mask-pw')) {
+              input.classList.remove('mask-pw');
+              btn.innerHTML = ICONS.eyeOff;
+          } else { 
+              input.classList.add('mask-pw');
+              btn.innerHTML = ICONS.eye; 
+          }
+        });
+        
+        ['val_n', 'val_i', 'val_s', 'val_t'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('keydown', (e) => {
+                    if(e.key === 'Enter') {
+                        e.preventDefault();
+                        if (!document.getElementById('saveClientBtn').disabled) {
+                            document.getElementById('saveClientBtn').click();
+                        }
+                    }
+                });
+            }
+        });
+        
+        const shareRoleWrap = document.getElementById('shareRoleWrap');
+        const shareRoleTrigger = document.getElementById('shareRoleTrigger');
+        const shareRoleInput = document.getElementById('shareRoleInput');
+        const shareRoleLabel = document.getElementById('shareRoleLabel');
+
+        if(shareRoleWrap && shareRoleTrigger) {
+            shareRoleTrigger.addEventListener('click', (e) => {
                 e.stopPropagation();
-                shareRoleInput.value = opt.getAttribute('data-value');
-                shareRoleLabel.textContent = opt.textContent;
-                shareRoleWrap.classList.remove('open');
+                shareRoleWrap.classList.toggle('open');
             });
-        });
-        document.addEventListener('click', () => shareRoleWrap.classList.remove('open'));
-    }
+            document.querySelectorAll('.custom-option').forEach(opt => {
+                opt.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    shareRoleInput.value = opt.getAttribute('data-value');
+                    shareRoleLabel.textContent = opt.textContent;
+                    shareRoleWrap.classList.remove('open');
+                });
+            });
+            document.addEventListener('click', () => shareRoleWrap.classList.remove('open'));
+        }
+        
+        bindEvent('inviteUserBtn', 'click', async () => {
+          const cf = currentFolder();
+          if(!cf) return;
+          const email = document.getElementById('val_em_share').value.trim().toLowerCase();
+          const role = document.getElementById('shareRoleInput').value;
+          if(!email) { showToast('Enter an email address', true); return; }
+          
+          let newMembers = {...(cf.members || {})};
+          newMembers[email] = role;
+          let newShared = [...(cf.sharedWith || [])];
+          if(!newShared.includes(email)) newShared.push(email);
 
-    const cBody = document.getElementById('clientsBody');
-    if (cBody) {
-        cBody.addEventListener('click', async (e) => {
-            const btn = e.target.closest('button');
-            if(!btn) return;
+          const ref = doc(db, 'folders', cf.id);
+          await updateDoc(ref, { members: newMembers, sharedWith: newShared });
+          
+          cf.members = newMembers; cf.sharedWith = newShared;
+          
+          lastInvitedEmail = email; // Cache the email for the clipboard!
+          document.getElementById('val_em_share').value = '';
+          
+          renderShareTable();
+          showToast('User granted access!');
+        });
+
+        bindEvent('copyInviteLinkBtn', 'click', (e) => {
+            e.preventDefault();
+            const cf = currentFolder();
+            if(!cf) return;
             
-            const idxRaw = btn.getAttribute('data-idx');
-            const folder = currentFolder();
-            if (!folder) return;
+            const boxEmail = document.getElementById('val_em_share').value.trim().toLowerCase();
+            const targetEmail = boxEmail || lastInvitedEmail;
             
-            if (btn.classList.contains('action-connect')) {
-                const cid = btn.getAttribute('data-id');
-                if (cid) window.location.href = `rustdesk://${encodeURIComponent(cid.replace(/\s+/g, ''))}`;
-            }
-            else if (btn.classList.contains('action-copyid')) {
-                copyToClipboard(btn.getAttribute('data-id'), 'ID');
-            }
-            else if (btn.classList.contains('action-copykey')) {
-                copyToClipboard(btn.getAttribute('data-key'), 'Auth Key');
-            }
-            else if (btn.classList.contains('action-eyekey')) {
-                const hiddenSpan = btn.parentElement.querySelector('.hidden-pass');
-                const realSpan = btn.parentElement.querySelector('.real-pass');
-                if (hiddenSpan.style.display === 'none') {
-                    hiddenSpan.style.display = 'inline';
-                    realSpan.style.display = 'none';
-                    btn.innerHTML = ICONS.eye;
-                } else {
-                    hiddenSpan.style.display = 'none';
-                    realSpan.style.display = 'inline';
-                    btn.innerHTML = ICONS.eyeOff;
+            const emailPrefix = targetEmail ? `Please log in with your email id: ${targetEmail}\n\n` : ``;
+            const msg = `${emailPrefix}You have been invited to access the "${cf.name}" folder on the TechBugs RustDesk Directory. Log in to view the endpoints: ${window.location.href}`;
+            copyToClipboard(msg, 'Invite Link');
+        });
+        
+        const cBody = document.getElementById('clientsBody');
+        if (cBody) {
+            cBody.addEventListener('click', async (e) => {
+                const btn = e.target.closest('button');
+                if(!btn) return;
+                
+                const idxRaw = btn.getAttribute('data-idx');
+                const folder = currentFolder();
+                if (!folder) return;
+                
+                if (btn.classList.contains('action-connect')) {
+                    const cid = btn.getAttribute('data-id');
+                    if (cid) window.location.href = `rustdesk://${encodeURIComponent(cid.replace(/\s+/g, ''))}`;
                 }
-            }
-            else if (idxRaw !== null) {
-                const idx = parseInt(idxRaw);
-                if (btn.classList.contains('action-edit')) {
-                    loadIntoForm(idx);
+                else if (btn.classList.contains('action-copyid')) {
+                    copyToClipboard(btn.getAttribute('data-id'), 'ID');
                 }
-                else if (btn.classList.contains('action-up')) {
-                    [folder.clients[idx], folder.clients[idx - 1]] = [folder.clients[idx - 1], folder.clients[idx]];
-                    renderTable(); 
-                    try { await persistFolder(folder); } catch(err){}
+                else if (btn.classList.contains('action-copykey')) {
+                    copyToClipboard(btn.getAttribute('data-key'), 'Auth Key');
                 }
-                else if (btn.classList.contains('action-down')) {
-                    [folder.clients[idx], folder.clients[idx + 1]] = [folder.clients[idx + 1], folder.clients[idx]];
-                    renderTable(); 
-                    try { await persistFolder(folder); } catch(err){}
-                }
-                else if (btn.classList.contains('action-del')) {
-                    const confirmDel = await openModal('Delete Client', `Are you sure you want to delete this client?`);
-                    if (confirmDel) {
-                        folder.clients.splice(idx, 1);
-                        renderTable(); 
-                        try { await persistFolder(folder); showToast('Client deleted'); } catch (err) {}
+                else if (btn.classList.contains('action-eyekey')) {
+                    const hiddenSpan = btn.parentElement.querySelector('.hidden-pass');
+                    const realSpan = btn.parentElement.querySelector('.real-pass');
+                    if (hiddenSpan.style.display === 'none') {
+                        hiddenSpan.style.display = 'inline';
+                        realSpan.style.display = 'none';
+                        btn.innerHTML = ICONS.eye;
+                    } else {
+                        hiddenSpan.style.display = 'none';
+                        realSpan.style.display = 'inline';
+                        btn.innerHTML = ICONS.eyeOff;
                     }
                 }
-            }
-        });
-    }
+                else if (idxRaw !== null) {
+                    const idx = parseInt(idxRaw);
+                    if (btn.classList.contains('action-edit')) {
+                        loadIntoForm(idx);
+                    }
+                    else if (btn.classList.contains('action-up')) {
+                        [folder.clients[idx], folder.clients[idx - 1]] = [folder.clients[idx - 1], folder.clients[idx]];
+                        renderTable(); 
+                        try { await persistFolder(folder); } catch(err){}
+                    }
+                    else if (btn.classList.contains('action-down')) {
+                        [folder.clients[idx], folder.clients[idx + 1]] = [folder.clients[idx + 1], folder.clients[idx]];
+                        renderTable(); 
+                        try { await persistFolder(folder); } catch(err){}
+                    }
+                    else if (btn.classList.contains('action-del')) {
+                        const confirmDel = await openModal('Delete Client', `Are you sure you want to delete this client?`);
+                        if (confirmDel) {
+                            folder.clients.splice(idx, 1);
+                            renderTable(); 
+                            try { await persistFolder(folder); showToast('Client deleted'); } catch (err) {}
+                        }
+                    }
+                }
+            });
+        }
+        
+        initializeFirebase();
+    });
 
     async function initializeFirebase() {
       showLogin();
@@ -1398,6 +1413,7 @@
             setSyncStatus('Loading...');
             
             try {
+                // Auto-create default folder instantly if empty
                 const qOwned = query(collection(db, 'folders'), where('owner', '==', user.uid));
                 const snap = await getDocs(qOwned);
                 const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', user.email));
@@ -1432,8 +1448,6 @@
           setLoginStatus("Firebase Error: " + err.message, 'error');
       }
     }
-
-    initializeFirebase();
   </script>
 </body>
 </html>
