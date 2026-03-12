@@ -61,7 +61,7 @@
     input::placeholder { color: var(--text-muted); opacity: 0.8; }
     input:focus, select:focus { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
 
-    /* ENTERPRISE MASK: Forces Chrome to completely ignore the secret field */
+    /* CSS Security Mask to defeat Chrome Managers */
     .mask-pw { -webkit-text-security: disc; text-security: disc; }
 
     .custom-select-wrap { position: relative; width: 100%; user-select: none; }
@@ -88,7 +88,7 @@
     .btn-icon-only { padding: 8px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: var(--radius-sm); }
     .btn-icon-only:hover:not(:disabled) { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border-focus); }
     .btn-icon-only svg { width: 16px; height: 16px; pointer-events: none;}
-    .btn-icon-micro { padding: 4px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: 4px; display: inline-flex; }
+    .btn-icon-micro { padding: 6px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: 4px; display: inline-flex; cursor: pointer;}
     .btn-icon-micro:hover { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border); }
     .btn-icon-micro svg { width: 14px; height: 14px; pointer-events: none;}
 
@@ -475,7 +475,7 @@
         }
     });
 
-    // Handle 'Enter' internally in the Client Modal to save cleanly
+    // Submitting client form on Enter securely
     ['val_n', 'val_i', 'val_s', 'val_t'].forEach(id => {
         const el = document.getElementById(id);
         if(el) {
@@ -559,15 +559,18 @@
     }
 
     // --- Modals ---
-    function openClientModal() {
+    function openClientModal(isEdit = false) {
+      if(!isEdit) resetForm();
       const modal = document.getElementById('clientModalOverlay');
       if(modal) { modal.style.display = 'flex'; document.getElementById('val_n').focus(); }
     }
+    
     function closeClientModal() {
       const modal = document.getElementById('clientModalOverlay');
-      if(modal) modal.style.display = 'none'; resetForm();
+      if(modal) modal.style.display = 'none';
+      // We DO NOT wipe the inputs here because Chrome will see it as a submit!
     }
-    bindEvent('openAddClientModalBtn', 'click', openClientModal);
+    bindEvent('openAddClientModalBtn', 'click', () => openClientModal(false));
     bindEvent('closeClientModalBtn', 'click', closeClientModal);
     bindEvent('cancelClientBtn', 'click', closeClientModal);
 
@@ -582,25 +585,32 @@
     bindEvent('shareFolderBtn', 'click', openShareModal);
     bindEvent('closeShareModalBtn', 'click', closeShareModal);
 
-    function togglePassVisibility(inputId, btnId) {
-      const input = document.getElementById(inputId); const btn = document.getElementById(btnId);
-      if(!input || !btn) return;
-      
-      // We process the Login Auth fields differently than the Masked Client Fields
+    // Click to Toggle Password Visibility (No Mousedown glitches)
+    let isModalPassVisible = false;
+    bindEvent('toggleClientPass', 'click', () => {
+        const input = document.getElementById('val_s');
+        const btn = document.getElementById('toggleClientPass');
+        isModalPassVisible = !isModalPassVisible;
+        if(isModalPassVisible) {
+            input.style.webkitTextSecurity = 'none';
+            btn.innerHTML = ICONS.eyeOff;
+        } else {
+            input.style.webkitTextSecurity = 'disc';
+            btn.innerHTML = ICONS.eye;
+        }
+    });
+
+    bindEvent('toggleAuthPass', 'click', () => {
+      const input = document.getElementById('authPassword');
+      const btn = document.getElementById('toggleAuthPass');
       if (input.type === 'password') { 
           input.type = 'text'; 
           btn.innerHTML = ICONS.eyeOff; 
-      } else if (input.classList.contains('mask-pw')) {
-          input.classList.remove('mask-pw');
-          btn.innerHTML = ICONS.eyeOff;
       } else { 
-          if(inputId === 'val_s') input.classList.add('mask-pw');
-          else input.type = 'password'; 
+          input.type = 'password'; 
           btn.innerHTML = ICONS.eye; 
       }
-    }
-    bindEvent('toggleAuthPass', 'click', () => togglePassVisibility('authPassword', 'toggleAuthPass'));
-    bindEvent('toggleClientPass', 'click', () => togglePassVisibility('val_s', 'toggleClientPass'));
+    });
 
     function copyToClipboard(text, type) {
       if (!text) return;
@@ -616,10 +626,8 @@
     function showApp() { 
       document.getElementById('loginShell').style.display = 'none'; 
       document.getElementById('appShell').style.display = 'flex'; 
-      
-      // Nuke the Auth Form entirely from the DOM to protect the App from Chrome Scanner
       const authBox = document.getElementById('authBoxCore');
-      if (authBox) authBox.innerHTML = '';
+      if (authBox) authBox.innerHTML = ''; // Destroy login form from memory
     }
 
     // --- Data Logic (TickTick Model) ---
@@ -631,13 +639,13 @@
         const cf = currentFolder();
         if(!cf) return null;
         if(cf.owner === activeUser.uid) return 'owner';
-        return cf.members[activeUser.email] || 'viewer';
+        return (cf.members && cf.members[activeUser.email]) ? cf.members[activeUser.email] : 'viewer';
     }
 
     function enforceRoleUI() {
         if (sortedFolders.length === 0) {
             document.getElementById('openAddClientModalBtn').style.display = 'none';
-            document.getElementById('folderToolsUI').style.display = 'flex'; // Allow adding folders
+            document.getElementById('folderToolsUI').style.display = 'flex';
             document.getElementById('folderLabel').textContent = 'No Folders';
             document.getElementById('roleBadge').style.display = 'none';
             
@@ -729,7 +737,6 @@
                 console.error(e);
             }
         }, (error) => {
-            console.error("Firebase Snapshot Error:", error);
             setSyncStatus('Database Error');
         });
 
@@ -749,8 +756,6 @@
             } catch(e) {
                 console.error(e);
             }
-        }, (error) => {
-            console.error("Firebase Shared Snapshot Error:", error);
         });
     }
 
@@ -773,7 +778,6 @@
         
         btn.addEventListener('click', () => {
           currentFolderId = folder.id;
-          resetForm();
           renderFolders();
           enforceRoleUI();
           renderTable();
@@ -787,7 +791,7 @@
 
     // Safe HTML Escaping
     function escapeHtml(value) { 
-        if (value === null || value === undefined) return '';
+        if (!value) return '';
         return String(value)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -796,7 +800,7 @@
             .replace(/'/g, '&#39;'); 
     }
 
-    // 100% Pure DOM Table Rendering (Crash-Proof)
+    // 100% Pure DOM Table Rendering (Crash-Proof against string parsing)
     function renderTable() {
       const cBody = document.getElementById('clientsBody');
       const searchBx = document.getElementById('searchBox');
@@ -844,35 +848,45 @@
             copyIdBtn.innerHTML = ICONS.copy;
             copyIdBtn.onclick = () => copyToClipboard(client.id, 'ID');
             
-            idWrap.append(idSpan, copyIdBtn);
+            idWrap.appendChild(idSpan);
+            idWrap.appendChild(copyIdBtn);
             tdId.appendChild(idWrap);
             tr.appendChild(tdId);
 
             // --- 3. Auth Key ---
             const tdPass = document.createElement('td');
             tdPass.style.fontFamily = 'monospace';
-            const passWrap = document.createElement('div');
-            passWrap.style.display = 'flex';
-            passWrap.style.alignItems = 'center';
-            passWrap.style.gap = '8px';
             
-            const passHidden = document.createElement('span');
-            passHidden.textContent = '••••••••';
-            
-            const passReal = document.createElement('span');
-            passReal.textContent = client.password || '';
-            passReal.style.display = 'none';
-            
-            passWrap.append(passHidden, passReal);
-
             if (client.password) {
+                const passWrap = document.createElement('div');
+                passWrap.style.display = 'flex';
+                passWrap.style.alignItems = 'center';
+                passWrap.style.gap = '8px';
+                
+                const hiddenSpan = document.createElement('span');
+                hiddenSpan.textContent = '••••••••';
+                
+                const realSpan = document.createElement('span');
+                realSpan.textContent = client.password;
+                realSpan.style.display = 'none';
+                
                 const eyeBtn = document.createElement('button');
                 eyeBtn.className = 'btn-icon-micro';
-                eyeBtn.title = 'Show key';
+                eyeBtn.title = 'Toggle Key Visibility';
                 eyeBtn.innerHTML = ICONS.eye;
-                eyeBtn.onmousedown = () => { passHidden.style.display = 'none'; passReal.style.display = 'inline'; eyeBtn.innerHTML = ICONS.eyeOff; };
-                eyeBtn.onmouseup = () => { passHidden.style.display = 'inline'; passReal.style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; };
-                eyeBtn.onmouseleave = () => { passHidden.style.display = 'inline'; passReal.style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; };
+                
+                // Pure Click toggle logic for Endpoints
+                eyeBtn.onclick = () => {
+                    if (hiddenSpan.style.display === 'none') {
+                        hiddenSpan.style.display = 'inline';
+                        realSpan.style.display = 'none';
+                        eyeBtn.innerHTML = ICONS.eye;
+                    } else {
+                        hiddenSpan.style.display = 'none';
+                        realSpan.style.display = 'inline';
+                        eyeBtn.innerHTML = ICONS.eyeOff;
+                    }
+                };
                 
                 const copyPassBtn = document.createElement('button');
                 copyPassBtn.className = 'btn-icon-micro';
@@ -880,9 +894,12 @@
                 copyPassBtn.innerHTML = ICONS.copy;
                 copyPassBtn.onclick = () => copyToClipboard(client.password, 'Auth Key');
                 
-                passWrap.append(eyeBtn, copyPassBtn);
+                passWrap.appendChild(hiddenSpan);
+                passWrap.appendChild(realSpan);
+                passWrap.appendChild(eyeBtn);
+                passWrap.appendChild(copyPassBtn);
+                tdPass.appendChild(passWrap);
             }
-            tdPass.appendChild(passWrap);
             tr.appendChild(tdPass);
 
             // --- 4. Notes ---
@@ -908,7 +925,6 @@
             actWrap.appendChild(connectBtn);
 
             if (!isViewer) {
-                // Client Up Button
                 const btnUp = document.createElement('button');
                 btnUp.className = 'btn-action';
                 btnUp.title = 'Move Up';
@@ -917,12 +933,11 @@
                 btnUp.onclick = async () => {
                     if (index > 0 && !queryTxt) {
                         [folder.clients[index], folder.clients[index - 1]] = [folder.clients[index - 1], folder.clients[index]];
-                        renderTable(); // Force synchronous UI update
+                        renderTable(); 
                         try { await persistFolder(folder); } catch(e){}
                     }
                 };
-                
-                // Client Down Button
+
                 const btnDown = document.createElement('button');
                 btnDown.className = 'btn-action';
                 btnDown.title = 'Move Down';
@@ -931,7 +946,7 @@
                 btnDown.onclick = async () => {
                     if (index < folder.clients.length - 1 && !queryTxt) {
                         [folder.clients[index], folder.clients[index + 1]] = [folder.clients[index + 1], folder.clients[index]];
-                        renderTable(); // Force synchronous UI update
+                        renderTable();
                         try { await persistFolder(folder); } catch(e){}
                     }
                 };
@@ -951,17 +966,14 @@
                   const confirmDel = await openModal('Delete Client', `Are you sure you want to delete "${client.name}"?`);
                   if (!confirmDel) return;
                   folder.clients.splice(index, 1);
-                  
-                  renderTable(); // Force synchronous UI update
-                  try {
-                      await persistFolder(folder);
-                      showToast('Client deleted');
-                  } catch (e) {
-                      showToast('Cloud sync failed.', true);
-                  }
+                  renderTable(); 
+                  try { await persistFolder(folder); showToast('Client deleted'); } catch (e) { showToast('Sync failed.', true); }
                 };
                 
-                actWrap.append(btnUp, btnDown, editBtn, deleteBtn);
+                actWrap.appendChild(btnUp);
+                actWrap.appendChild(btnDown);
+                actWrap.appendChild(editBtn);
+                actWrap.appendChild(deleteBtn);
             }
 
             tdActions.appendChild(actWrap);
@@ -997,15 +1009,11 @@
              if(!confirmed) return;
              
              const ref = doc(db, 'folders', cf.id);
-             
              let newMembers = {...cf.members};
              delete newMembers[email];
              let newShared = cf.sharedWith.filter(e => e !== email);
 
-             await updateDoc(ref, {
-                members: newMembers,
-                sharedWith: newShared
-             });
+             await updateDoc(ref, { members: newMembers, sharedWith: newShared });
              
              cf.members = newMembers;
              cf.sharedWith = newShared;
@@ -1030,10 +1038,7 @@
       if(!newShared.includes(email)) newShared.push(email);
 
       const ref = doc(db, 'folders', cf.id);
-      await updateDoc(ref, {
-        members: newMembers,
-        sharedWith: newShared
-      });
+      await updateDoc(ref, { members: newMembers, sharedWith: newShared });
       
       cf.members = newMembers;
       cf.sharedWith = newShared;
@@ -1057,26 +1062,32 @@
 
     // --- Folder / Client Actions ---
     function resetForm() {
+      // Silently wipe the actual data
       document.getElementById('val_n').value = ''; 
       document.getElementById('val_i').value = ''; 
       document.getElementById('val_s').value = ''; 
       document.getElementById('val_t').value = '';
+      
+      // Reset text visibility visually to secure mode
+      isModalPassVisible = false;
+      document.getElementById('val_s').style.webkitTextSecurity = 'disc';
+      document.getElementById('toggleClientPass').innerHTML = ICONS.eye;
+      
       editIndex = null; 
       document.getElementById('clientModalTitle').textContent = 'Add Client';
-      document.getElementById('moveFolderWrap').style.display = 'none';
       document.getElementById('saveClientBtn').textContent = 'Save Client';
     }
 
     function loadIntoForm(index) {
       const client = currentFolder()?.clients[index];
       if (!client) return;
+      
+      document.getElementById('val_n').value = client.name || ''; 
+      document.getElementById('val_i').value = client.id || ''; 
+      document.getElementById('val_s').value = client.password || ''; 
+      document.getElementById('val_t').value = client.notes || '';
+      
       editIndex = index;
-      
-      document.getElementById('val_n').value = client.name; 
-      document.getElementById('val_i').value = client.id;
-      document.getElementById('val_s').value = client.password; 
-      document.getElementById('val_t').value = client.notes;
-      
       document.getElementById('clientModalTitle').textContent = `Edit Client #${index + 1}`;
       document.getElementById('saveClientBtn').textContent = 'Update Client';
       
@@ -1090,7 +1101,7 @@
       });
       
       document.getElementById('moveFolderWrap').style.display = 'flex';
-      openClientModal();
+      openClientModal(true); // Pass true to avoid wiping the form we just populated
     }
 
     async function moveFolder(dir) {
@@ -1123,8 +1134,12 @@
       sortedFolders.sort((a, b) => a.order - b.order);
       renderFolders();
 
-      await updateDoc(doc(db, 'folders', currentF.id), { order: currentF.order });
-      await updateDoc(doc(db, 'folders', targetF.id), { order: targetF.order });
+      try {
+          await updateDoc(doc(db, 'folders', currentF.id), { order: currentF.order });
+          await updateDoc(doc(db, 'folders', targetF.id), { order: targetF.order });
+      } catch (e) {
+          console.error(e);
+      }
     }
 
     async function addFolder() {
@@ -1142,9 +1157,13 @@
           createdAt: serverTimestamp()
       };
       
-      const docRef = await addDoc(collection(db, 'folders'), newFolder);
-      currentFolderId = docRef.id;
-      showToast('Folder created');
+      try {
+          const docRef = await addDoc(collection(db, 'folders'), newFolder);
+          currentFolderId = docRef.id;
+          showToast('Folder created');
+      } catch (e) {
+          showToast('Failed to create folder.', true);
+      }
     }
 
     async function renameFolder() {
@@ -1161,12 +1180,16 @@
       const confirmed = await openModal('Delete Folder', `Are you sure you want to completely delete "${cf.name}"? This removes it for everyone.`);
       if (!confirmed) return;
       
-      await deleteDoc(doc(db, 'folders', cf.id));
-      foldersMap.delete(cf.id);
-      currentFolderId = null;
-      resetForm();
-      processFoldersMap();
-      showToast('Folder deleted');
+      try {
+          await deleteDoc(doc(db, 'folders', cf.id));
+          foldersMap.delete(cf.id);
+          currentFolderId = null;
+          resetForm();
+          processFoldersMap();
+          showToast('Folder deleted');
+      } catch (e) {
+          showToast('Failed to delete folder.', true);
+      }
     }
 
     bindEvent('saveClientBtn', 'click', async (event) => {
@@ -1182,10 +1205,10 @@
 
       if (!name || !id) { showToast('Client Name and ID are required.', true); return; }
 
+      if(!folder.clients) folder.clients = [];
       const isDup = folder.clients.some((c, i) => i !== editIndex && (c.id === id || c.name === name));
       if (isDup) { showToast('A client with this Name or ID already exists here.', true); return; }
 
-      // Disable button to prevent double execution
       const btn = document.getElementById('saveClientBtn');
       btn.disabled = true;
       btn.textContent = 'Saving...';
@@ -1193,7 +1216,6 @@
       const payload = { name, id, password, notes };
       
       if (editIndex === null) {
-        if(!folder.clients) folder.clients = [];
         folder.clients.push(payload);
         showToast('Client saved');
       } else {
@@ -1201,10 +1223,11 @@
         const targetFolder = sortedFolders[targetFolderIdx];
         
         if (targetFolder && targetFolder.id !== folder.id) {
+          if(!targetFolder.clients) targetFolder.clients = [];
           targetFolder.clients.push(payload);
           folder.clients.splice(editIndex, 1);
           
-          try { await persistFolder(targetFolder); } catch(e) { console.error(e); }
+          try { await persistFolder(targetFolder); } catch(e) {}
           showToast(`Client moved to ${targetFolder.name}`);
         } else {
           folder.clients[editIndex] = payload;
@@ -1212,17 +1235,13 @@
         }
       }
 
-      // 1. Force Synchronous UI update instantly so it visually appears
+      // 1. Instantly hide modal without wiping to trick Chrome's password manager
+      document.getElementById('clientModalOverlay').style.display = 'none';
+      
+      // 2. Force Sync UI instantly
       renderTable();
       
-      // 2. Wipe memory and close modal to prevent Chrome password scanning
-      document.getElementById('val_n').value = '';
-      document.getElementById('val_i').value = '';
-      document.getElementById('val_s').value = '';
-      document.getElementById('val_t').value = '';
-      closeClientModal();
-      
-      // 3. Send to cloud in background safely
+      // 3. Persist to DB securely
       try {
           await persistFolder(folder);
       } catch (err) {
@@ -1236,8 +1255,10 @@
 
     // --- Authentication ---
     async function signInWithGoogle() {
+      const eBox = document.getElementById('authEmail'); const pBox = document.getElementById('authPassword');
+      if(eBox) eBox.value = ''; if(pBox) pBox.value = '';
       setLoginStatus('Opening Google sign-in...');
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e) { setLoginStatus(e.message, 'error'); }
     }
 
     async function signInWithEmail() {
@@ -1245,7 +1266,7 @@
       const password = document.getElementById('authPassword').value;
       if (!email || !password) { setLoginStatus('Enter your email and password first.', 'error'); return; }
       setLoginStatus('Signing you in...');
-      await signInWithEmailAndPassword(auth, email, password);
+      try { await signInWithEmailAndPassword(auth, email, password); } catch(e) { setLoginStatus(e.message, 'error'); }
     }
 
     async function createAccount() {
@@ -1254,51 +1275,31 @@
       if (!email || !password) { setLoginStatus('Enter an email and password to create the account.', 'error'); return; }
       if (password.length < 6) { setLoginStatus('Password must be at least 6 characters.', 'error'); return; }
       setLoginStatus('Creating your account...');
-      await createUserWithEmailAndPassword(auth, email, password);
+      try { await createUserWithEmailAndPassword(auth, email, password); } catch(e) { setLoginStatus(e.message, 'error'); }
     }
 
     async function resetPassword() {
       const email = document.getElementById('authEmail').value.trim();
       if (!email) { setLoginStatus('Enter your email in the box first to reset password.', 'error'); return; }
-      await sendPasswordResetEmail(auth, email);
-      setLoginStatus('Password reset email sent!', 'success');
+      try { await sendPasswordResetEmail(auth, email); setLoginStatus('Password reset email sent!', 'success'); } catch(e) { setLoginStatus(e.message, 'error'); }
     }
 
-    bindEvent('googleLoginBtn', 'click', async () => { try { await signInWithGoogle(); } catch (error) { setLoginStatus(error.message, 'error'); } });
-    bindEvent('emailLoginBtn', 'click', async () => { try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); } });
-    bindEvent('emailSignupBtn', 'click', async () => { try { await createAccount(); } catch (error) { setLoginStatus(error.message, 'error'); } });
-    bindEvent('forgotPassBtn', 'click', async (e) => { e.preventDefault(); try { await resetPassword(); } catch (error) { setLoginStatus(error.message, 'error'); } });
+    bindEvent('googleLoginBtn', 'click', signInWithGoogle);
+    bindEvent('emailLoginBtn', 'click', signInWithEmail);
+    bindEvent('emailSignupBtn', 'click', createAccount);
+    bindEvent('forgotPassBtn', 'click', async (e) => { e.preventDefault(); resetPassword(); });
     
-    const authPwBox = document.getElementById('authPassword');
-    if(authPwBox) {
-        authPwBox.addEventListener('keydown', async (event) => { 
-            if (event.key === 'Enter') { 
-                event.preventDefault(); 
-                try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); } 
-            } 
-        });
-    }
-
     bindEvent('keepSignedIn', 'change', async (e) => {
       if(auth) { try { await setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence); } catch (error) { console.error(error); } }
     });
 
     async function logout() {
       if (auth) await signOut(auth);
-      
-      // Physically refresh the browser. This completely wipes Chrome's form memory and guarantees a pristine state.
-      window.location.reload();
+      window.location.reload(); // Physical reload permanently wipes the DOM states
     }
-    
     bindEvent('logoutBtn', 'click', logout);
-    bindEvent('searchBox', 'input', renderTable);
-    bindEvent('clearBtn', 'click', resetForm);
-    bindEvent('moveLeftBtn', 'click', () => moveFolder(-1));
-    bindEvent('moveRightBtn', 'click', () => moveFolder(1));
-    bindEvent('addFolderBtn', 'click', addFolder);
-    bindEvent('renameFolderBtn', 'click', renameFolder);
-    bindEvent('deleteFolderBtn', 'click', deleteFolder);
-
+    
+    // --- Initializer ---
     async function initializeFirebase() {
       showLogin();
 
@@ -1325,7 +1326,7 @@
             setSyncStatus('Loading...');
             
             try {
-                // Auto-create default folder instantly if empty
+                // Automatically create default folder on first launch
                 const qOwned = query(collection(db, 'folders'), where('owner', '==', user.uid));
                 const snap = await getDocs(qOwned);
                 const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', user.email));
@@ -1352,8 +1353,8 @@
                 
             } catch (error) {
                 console.error(error);
-                setSyncStatus('DB Error');
-                showToast('Failed to load database. Check Firebase Rules.', true);
+                setSyncStatus('Database Offline');
+                showToast('Failed to load database. Check Firebase connection.', true);
             }
           });
       } catch (err) {
