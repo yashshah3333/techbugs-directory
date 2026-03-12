@@ -59,10 +59,10 @@
       border-radius: var(--radius-sm); padding: 12px 16px; color: var(--text); font-size: 14px; transition: all 0.2s; outline: none;
     }
     input::placeholder { color: var(--text-muted); opacity: 0.8; }
-    input:focus { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
+    input:focus, select:focus { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
 
-    /* ENTERPRISE MASK: Forces text to look like passwords to users, but browsers ignore it */
-    .mask-pw { -webkit-text-security: disc; }
+    /* ENTERPRISE MASK: Forces Chrome to ignore the password field */
+    .mask-pw { -webkit-text-security: disc; text-security: disc; }
 
     .custom-select-wrap { position: relative; width: 100%; user-select: none; }
     .custom-select-trigger { width: 100%; background: rgba(128, 128, 128, 0.08); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; color: var(--text); font-size: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
@@ -184,7 +184,7 @@
     <div class="modal-card glass-panel" id="modalBox">
       <h3 id="modalTitle">Confirm</h3>
       <p id="modalDesc"></p>
-      <input type="text" id="modalInput" style="display:none;" autocomplete="off">
+      <input type="text" id="modalInput" style="display:none;" autocomplete="off" data-lpignore="true">
       <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
         <button class="btn-secondary" id="modalCancel">Cancel</button>
         <button class="btn-main" id="modalConfirm">Confirm</button>
@@ -202,7 +202,7 @@
       </div>
       
       <div style="display:flex; gap:10px; margin-bottom: 12px; position: relative;">
-        <input type="text" id="shareEmailInput" placeholder="Enter email address..." style="flex:2;" autocomplete="off">
+        <input type="text" id="shareEmailInput" placeholder="Enter email address..." style="flex:2;" autocomplete="off" data-lpignore="true">
         
         <div class="custom-select-wrap" id="shareRoleWrap" style="flex:1;">
             <div class="custom-select-trigger" id="shareRoleTrigger">
@@ -247,16 +247,16 @@
         <div class="form-grid">
           <div class="field">
             <label for="clientName">Client name</label>
-            <input type="text" id="clientName" placeholder="Office-PC-Solapur" autocomplete="off">
+            <input type="text" id="clientName" placeholder="Office-PC-Solapur" autocomplete="off" data-lpignore="true">
           </div>
           <div class="field">
             <label for="clientId">RustDesk ID</label>
-            <input type="text" id="clientId" placeholder="123 456 789" autocomplete="off">
+            <input type="text" id="clientId" placeholder="123 456 789" autocomplete="off" data-lpignore="true">
           </div>
           <div class="field">
             <label for="clientPassword">Password</label>
             <div class="input-wrapper">
-              <input type="text" id="clientPassword" class="mask-pw" placeholder="Client password" autocomplete="off">
+              <input type="text" id="clientPassword" class="mask-pw" placeholder="Client password" autocomplete="off" spellcheck="false" data-lpignore="true">
               <button type="button" class="icon-btn-absolute" id="toggleClientPass" title="Show password">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
@@ -264,7 +264,7 @@
           </div>
           <div class="field">
             <label for="clientNotes">Notes / Tag</label>
-            <input type="text" id="clientNotes" placeholder="Win 10 | Shop PC" autocomplete="off">
+            <input type="text" id="clientNotes" placeholder="Win 10 | Shop PC" autocomplete="off" data-lpignore="true">
           </div>
           <div class="field" id="moveFolderWrap" style="display:none;">
             <label for="clientFolderSelect">Folder</label>
@@ -584,7 +584,7 @@
       const input = document.getElementById(inputId); const btn = document.getElementById(btnId);
       if(!input || !btn) return;
       
-      // Handle the Login Form specifically vs Client Form Mask
+      // We process the Login Auth fields differently than the Masked Client Fields
       if (input.type === 'password') { 
           input.type = 'text'; 
           btn.innerHTML = ICONS.eyeOff; 
@@ -670,9 +670,14 @@
     }
 
     function processFoldersMap() {
-        sortedFolders = Array.from(foldersMap.values()).sort((a, b) => a.order - b.order);
-        if (sortedFolders.length > 0 && !sortedFolders.find(f => f.id === currentFolderId)) {
-            currentFolderId = sortedFolders[0].id;
+        sortedFolders = Array.from(foldersMap.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
+        
+        if (sortedFolders.length > 0) {
+            if (!currentFolderId || !sortedFolders.find(f => f.id === currentFolderId)) {
+                currentFolderId = sortedFolders[0].id;
+            }
+        } else {
+            currentFolderId = null;
         }
         
         renderFolders();
@@ -688,30 +693,43 @@
 
         const qOwned = query(collection(db, 'folders'), where('owner', '==', activeUser.uid));
         unsubscribeOwned = onSnapshot(qOwned, (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                if(change.type === 'removed') foldersMap.delete(change.doc.id);
-                else {
-                    const data = change.doc.data();
-                    if(data.order === undefined) data.order = Date.now();
-                    foldersMap.set(change.doc.id, { id: change.doc.id, ...data });
-                }
-            });
-            processFoldersMap();
-            setSyncStatus('Synced');
+            try {
+                snapshot.docChanges().forEach((change) => {
+                    if(change.type === 'removed') foldersMap.delete(change.doc.id);
+                    else {
+                        const data = change.doc.data();
+                        if(data.order === undefined) data.order = Date.now();
+                        foldersMap.set(change.doc.id, { id: change.doc.id, ...data });
+                    }
+                });
+                processFoldersMap();
+                setSyncStatus('Synced');
+            } catch (e) {
+                console.error(e);
+            }
+        }, (error) => {
+            console.error("Firebase Snapshot Error:", error);
+            setSyncStatus('Access Denied/Offline');
         });
 
         const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', activeUser.email));
         unsubscribeShared = onSnapshot(qShared, (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                if(change.type === 'removed') foldersMap.delete(change.doc.id);
-                else {
-                    const data = change.doc.data();
-                    if(data.order === undefined) data.order = Date.now();
-                    foldersMap.set(change.doc.id, { id: change.doc.id, ...data });
-                }
-            });
-            processFoldersMap();
-            setSyncStatus('Synced');
+            try {
+                snapshot.docChanges().forEach((change) => {
+                    if(change.type === 'removed') foldersMap.delete(change.doc.id);
+                    else {
+                        const data = change.doc.data();
+                        if(data.order === undefined) data.order = Date.now();
+                        foldersMap.set(change.doc.id, { id: change.doc.id, ...data });
+                    }
+                });
+                processFoldersMap();
+                setSyncStatus('Synced');
+            } catch(e) {
+                console.error(e);
+            }
+        }, (error) => {
+            console.error("Firebase Shared Snapshot Error:", error);
         });
     }
 
@@ -753,85 +771,101 @@
 
       cBody.innerHTML = '';
       const folder = currentFolder();
-      if (!folder) return;
+      if (!folder || !folder.clients) return;
 
       const queryTxt = searchBx.value.trim().toLowerCase();
-      const filtered = queryTxt ? folder.clients.filter(c => c.name.toLowerCase().includes(queryTxt) || c.id.toLowerCase().includes(queryTxt)) : folder.clients;
+      const filtered = queryTxt ? folder.clients.filter(c => 
+          (c.name || '').toLowerCase().includes(queryTxt) || 
+          (c.id || '').toLowerCase().includes(queryTxt)
+      ) : folder.clients;
+      
       const role = getRole();
       const isViewer = (role === 'viewer');
 
       filtered.forEach((client) => {
-        const index = folder.clients.indexOf(client);
-        const row = document.createElement('tr');
+        try {
+            const index = folder.clients.indexOf(client);
+            const row = document.createElement('tr');
 
-        // Password Cell
-        const passwordCell = document.createElement('td');
-        passwordCell.style.fontFamily = "monospace";
-        passwordCell.innerHTML = `
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span class="hidden-pass">••••••••</span><span class="real-pass" style="display:none"></span>
-            ${client.password ? `
-              <button class="btn-icon-micro eye-btn" title="Show password">${ICONS.eye}</button>
-              <button class="btn-icon-micro copy-btn" title="Copy Password">${ICONS.copy}</button>
-            ` : ''}
-          </div>`;
-        passwordCell.querySelector('.real-pass').textContent = client.password;
-        
-        const copyPassBtn = passwordCell.querySelector('.copy-btn');
-        if (copyPassBtn) copyPassBtn.addEventListener('click', () => copyToClipboard(client.password, 'Password'));
-
-        const eyeBtn = passwordCell.querySelector('.eye-btn');
-        if (eyeBtn) {
-          eyeBtn.addEventListener('mousedown', () => { passwordCell.querySelector('.hidden-pass').style.display = 'none'; passwordCell.querySelector('.real-pass').style.display = 'inline'; eyeBtn.innerHTML = ICONS.eyeOff; });
-          eyeBtn.addEventListener('mouseup', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; });
-          eyeBtn.addEventListener('mouseleave', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; });
-        }
-
-        // Actions
-        const actions = document.createElement('td');
-        const actionWrap = document.createElement('div');
-        actionWrap.className = 'table-actions';
-
-        const connectBtn = document.createElement('button');
-        connectBtn.className = 'btn-action'; connectBtn.innerHTML = ICONS.connect; connectBtn.title = 'Connect';
-        connectBtn.addEventListener('click', () => { if (client.id) window.location.href = `rustdesk://${encodeURIComponent(client.id.replace(/\s+/g, ''))}`; });
-        actionWrap.appendChild(connectBtn);
-
-        if (!isViewer) {
-            const editBtn = document.createElement('button');
-            editBtn.className = 'btn-action'; editBtn.innerHTML = ICONS.edit; editBtn.title = 'Edit';
-            editBtn.addEventListener('click', () => loadIntoForm(index));
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn-action'; deleteBtn.style.color = 'var(--danger)'; deleteBtn.innerHTML = ICONS.delete; deleteBtn.title = 'Delete';
-            deleteBtn.addEventListener('click', async () => {
-              const confirmDel = await openModal('Delete Client', `Are you sure you want to delete "${client.name}"?`);
-              if (!confirmDel) return;
-              folder.clients.splice(index, 1);
-              await persistFolder(folder);
-              showToast('Client deleted');
-            });
+            // Password Cell
+            const passwordCell = document.createElement('td');
+            passwordCell.style.fontFamily = "monospace";
+            passwordCell.innerHTML = `
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="hidden-pass">••••••••</span><span class="real-pass" style="display:none"></span>
+                ${client.password ? `
+                  <button class="btn-icon-micro eye-btn" title="Show password">${ICONS.eye}</button>
+                  <button class="btn-icon-micro copy-btn" title="Copy Password">${ICONS.copy}</button>
+                ` : ''}
+              </div>`;
+            passwordCell.querySelector('.real-pass').textContent = client.password;
             
-            actionWrap.append(editBtn, deleteBtn);
+            const copyPassBtn = passwordCell.querySelector('.copy-btn');
+            if (copyPassBtn) copyPassBtn.addEventListener('click', () => copyToClipboard(client.password, 'Password'));
+
+            const eyeBtn = passwordCell.querySelector('.eye-btn');
+            if (eyeBtn) {
+              eyeBtn.addEventListener('mousedown', () => { passwordCell.querySelector('.hidden-pass').style.display = 'none'; passwordCell.querySelector('.real-pass').style.display = 'inline'; eyeBtn.innerHTML = ICONS.eyeOff; });
+              eyeBtn.addEventListener('mouseup', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; });
+              eyeBtn.addEventListener('mouseleave', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; });
+            }
+
+            // Actions
+            const actions = document.createElement('td');
+            const actionWrap = document.createElement('div');
+            actionWrap.className = 'table-actions';
+
+            const connectBtn = document.createElement('button');
+            connectBtn.className = 'btn-action'; connectBtn.innerHTML = ICONS.connect; connectBtn.title = 'Connect';
+            connectBtn.addEventListener('click', () => { if (client.id) window.location.href = `rustdesk://${encodeURIComponent(client.id.replace(/\s+/g, ''))}`; });
+            actionWrap.appendChild(connectBtn);
+
+            if (!isViewer) {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn-action'; editBtn.innerHTML = ICONS.edit; editBtn.title = 'Edit';
+                editBtn.addEventListener('click', () => loadIntoForm(index));
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-action'; deleteBtn.style.color = 'var(--danger)'; deleteBtn.innerHTML = ICONS.delete; deleteBtn.title = 'Delete';
+                deleteBtn.addEventListener('click', async () => {
+                  const confirmDel = await openModal('Delete Client', `Are you sure you want to delete "${client.name}"?`);
+                  if (!confirmDel) return;
+                  folder.clients.splice(index, 1);
+                  
+                  renderTable(); // Force synchronous UI update
+                  try {
+                      await persistFolder(folder);
+                      showToast('Client deleted');
+                  } catch (e) {
+                      showToast('Cloud sync failed.', true);
+                  }
+                });
+                
+                actionWrap.appendChild(editBtn);
+                actionWrap.appendChild(deleteBtn);
+            }
+
+            actions.appendChild(actionWrap);
+
+            row.innerHTML = `
+              <td style="font-weight:500; color:var(--text);">${escapeHtml(client.name)}</td>
+              <td style="font-family:monospace;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  ${escapeHtml(client.id)}
+                  <button class="btn-icon-micro copy-id-btn" title="Copy ID">${ICONS.copy}</button>
+                </div>
+              </td>
+              <td></td>
+              <td>${client.notes ? `<span class="tag">${escapeHtml(client.notes)}</span>` : ''}</td>
+            `;
+            row.querySelector('.copy-id-btn').addEventListener('click', () => copyToClipboard(client.id, 'ID'));
+            row.children[2].replaceWith(passwordCell);
+            row.appendChild(actions);
+            cBody.appendChild(row);
+            
+        } catch (error) {
+            console.error('Error rendering client index ' + folder.clients.indexOf(client), error);
         }
-
-        actions.appendChild(actionWrap);
-
-        row.innerHTML = `
-          <td style="font-weight:500; color:var(--text);">${escapeHtml(client.name)}</td>
-          <td style="font-family:monospace;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              ${escapeHtml(client.id)}
-              <button class="btn-icon-micro copy-id-btn" title="Copy ID">${ICONS.copy}</button>
-            </div>
-          </td>
-          <td></td>
-          <td>${client.notes ? `<span class="tag">${escapeHtml(client.notes)}</span>` : ''}</td>
-        `;
-        row.querySelector('.copy-id-btn').addEventListener('click', () => copyToClipboard(client.id, 'ID'));
-        row.children[2].replaceWith(passwordCell);
-        row.appendChild(actions);
-        cBody.appendChild(row);
       });
     }
 
@@ -842,7 +876,7 @@
       if(!tb || !cf) return;
       tb.innerHTML = '';
       
-      Object.keys(cf.members).forEach(email => {
+      Object.keys(cf.members || {}).forEach(email => {
          const role = cf.members[email];
          const row = document.createElement('tr');
          
@@ -883,7 +917,7 @@
       const role = document.getElementById('shareRoleInput').value;
       if(!email) { showToast('Enter an email address', true); return; }
       
-      let newMembers = {...cf.members};
+      let newMembers = {...(cf.members || {})};
       newMembers[email] = role;
       
       let newShared = [...(cf.sharedWith || [])];
@@ -1030,6 +1064,7 @@
 
     bindEvent('saveClientBtn', 'click', async (event) => {
       if(event) event.preventDefault();
+      
       const folder = currentFolder();
       if (!folder) { showToast('Create a folder first.', true); return; }
 
@@ -1055,7 +1090,8 @@
         if (targetFolder && targetFolder.id !== folder.id) {
           targetFolder.clients.push(payload);
           folder.clients.splice(editIndex, 1);
-          await persistFolder(targetFolder);
+          
+          try { await persistFolder(targetFolder); } catch(e) { console.error(e); }
           showToast(`Client moved to ${targetFolder.name}`);
         } else {
           folder.clients[editIndex] = payload;
@@ -1063,22 +1099,28 @@
         }
       }
 
-      await persistFolder(folder);
-      
-      // Wipe values out to prevent browser memory retention
+      // WIPE memory instantly before closing modal to prevent browser logging
       document.getElementById('clientName').value = '';
       document.getElementById('clientId').value = '';
       document.getElementById('clientPassword').value = '';
       document.getElementById('clientNotes').value = '';
       
       closeClientModal();
+      
+      // SYNCHRONOUS RENDER to fix the invisible client bug!
       renderTable();
+      
+      // Send to cloud in the background
+      try {
+          await persistFolder(folder);
+      } catch (err) {
+          showToast('Failed to sync to cloud.', true);
+          console.error(err);
+      }
     });
 
     // --- Authentication ---
     async function signInWithGoogle() {
-      const eBox = document.getElementById('authEmail'); const pBox = document.getElementById('authPassword');
-      if(eBox) eBox.value = ''; if(pBox) pBox.value = '';
       setLoginStatus('Opening Google sign-in...');
       await signInWithPopup(auth, new GoogleAuthProvider());
     }
@@ -1111,7 +1153,17 @@
     bindEvent('emailLoginBtn', 'click', async () => { try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); } });
     bindEvent('emailSignupBtn', 'click', async () => { try { await createAccount(); } catch (error) { setLoginStatus(error.message, 'error'); } });
     bindEvent('forgotPassBtn', 'click', async (e) => { e.preventDefault(); try { await resetPassword(); } catch (error) { setLoginStatus(error.message, 'error'); } });
-    bindEvent('authPassword', 'keydown', async (event) => { if (event.key === 'Enter') { event.preventDefault(); try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); } } });
+    
+    // Auth password listener
+    const authPwBox = document.getElementById('authPassword');
+    if(authPwBox) {
+        authPwBox.addEventListener('keydown', async (event) => { 
+            if (event.key === 'Enter') { 
+                event.preventDefault(); 
+                try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); } 
+            } 
+        });
+    }
 
     bindEvent('keepSignedIn', 'change', async (e) => {
       if(auth) { try { await setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence); } catch (error) { console.error(error); } }
@@ -1127,6 +1179,7 @@
       currentFolderId = null;
       editIndex = null;
       
+      // Clear Chrome Auth Cache to stop lingering prompts
       const eBox = document.getElementById('authEmail'); const pBox = document.getElementById('authPassword');
       if(eBox) eBox.value = ''; if(pBox) pBox.value = '';
       
@@ -1168,28 +1221,35 @@
             if(emailEl) emailEl.textContent = user.email || 'Google account';
             setSyncStatus('Loading...');
             
-            // Auto-create default folder if the user has absolutely nothing
-            const qOwned = query(collection(db, 'folders'), where('owner', '==', user.uid));
-            const snap = await getDocs(qOwned);
-            const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', user.email));
-            const snapShared = await getDocs(qShared);
-            
-            if(snap.empty && snapShared.empty) {
-                const newFolder = {
-                    name: 'My Endpoints',
-                    owner: user.uid,
-                    ownerEmail: user.email,
-                    sharedWith: [],
-                    members: {},
-                    clients: [],
-                    order: Date.now(),
-                    createdAt: serverTimestamp()
-                };
-                await addDoc(collection(db, 'folders'), newFolder);
-            }
+            try {
+                // Auto-create default folder if the user has absolutely nothing
+                const qOwned = query(collection(db, 'folders'), where('owner', '==', user.uid));
+                const snap = await getDocs(qOwned);
+                const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', user.email));
+                const snapShared = await getDocs(qShared);
+                
+                if(snap.empty && snapShared.empty) {
+                    const newFolder = {
+                        name: 'My Endpoints',
+                        owner: user.uid,
+                        ownerEmail: user.email,
+                        sharedWith: [],
+                        members: {},
+                        clients: [],
+                        order: Date.now(),
+                        createdAt: serverTimestamp()
+                    };
+                    await addDoc(collection(db, 'folders'), newFolder);
+                }
 
-            setupDataListeners();
-            showApp();
+                setupDataListeners();
+                showApp();
+                
+            } catch (error) {
+                console.error(error);
+                setSyncStatus('DB Error');
+                showToast('Failed to load database. Check Firebase Rules.', true);
+            }
           });
       } catch (err) {
           setLoginStatus("Firebase Error: " + err.message, 'error');
