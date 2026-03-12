@@ -61,7 +61,7 @@
     input::placeholder { color: var(--text-muted); opacity: 0.8; }
     input:focus, select:focus { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
 
-    /* ENTERPRISE MASK: Forces Chrome to ignore the password field */
+    /* ENTERPRISE MASK: Forces Chrome to ignore the password field completely */
     .mask-pw { -webkit-text-security: disc; text-security: disc; }
 
     .custom-select-wrap { position: relative; width: 100%; user-select: none; }
@@ -254,10 +254,10 @@
             <input type="text" id="clientId" placeholder="123 456 789" autocomplete="off" data-lpignore="true">
           </div>
           <div class="field">
-            <label for="clientPassword">Password</label>
+            <label for="clientSecret">Auth Key</label>
             <div class="input-wrapper">
-              <input type="text" id="clientPassword" class="mask-pw" placeholder="Client password" autocomplete="off" spellcheck="false" data-lpignore="true">
-              <button type="button" class="icon-btn-absolute" id="toggleClientPass" title="Show password">
+              <input type="text" id="clientSecret" class="mask-pw" placeholder="Device access key" autocomplete="off" spellcheck="false" data-lpignore="true">
+              <button type="button" class="icon-btn-absolute" id="toggleClientPass" title="Show key">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
@@ -391,7 +391,7 @@
             <tr>
               <th style="width:25%;">Client</th>
               <th style="width:20%;">ID</th>
-              <th style="width:20%;">Password</th>
+              <th style="width:20%;">Auth Key</th>
               <th style="width:20%;">Notes</th>
               <th style="width:15%;">Actions</th>
             </tr>
@@ -475,14 +475,16 @@
         }
     });
 
-    // Handle 'Enter' internally in the Client Modal to save
-    ['clientName', 'clientId', 'clientPassword', 'clientNotes'].forEach(id => {
+    // Submitting client form on Enter safely
+    ['clientName', 'clientId', 'clientSecret', 'clientNotes'].forEach(id => {
         const el = document.getElementById(id);
         if(el) {
             el.addEventListener('keydown', (e) => {
                 if(e.key === 'Enter') {
                     e.preventDefault();
-                    document.getElementById('saveClientBtn').click();
+                    if (!document.getElementById('saveClientBtn').disabled) {
+                        document.getElementById('saveClientBtn').click();
+                    }
                 }
             });
         }
@@ -592,13 +594,13 @@
           input.classList.remove('mask-pw');
           btn.innerHTML = ICONS.eyeOff;
       } else { 
-          if(inputId === 'clientPassword') input.classList.add('mask-pw');
+          if(inputId === 'clientSecret') input.classList.add('mask-pw');
           else input.type = 'password'; 
           btn.innerHTML = ICONS.eye; 
       }
     }
     bindEvent('toggleAuthPass', 'click', () => togglePassVisibility('authPassword', 'toggleAuthPass'));
-    bindEvent('toggleClientPass', 'click', () => togglePassVisibility('clientPassword', 'toggleClientPass'));
+    bindEvent('toggleClientPass', 'click', () => togglePassVisibility('clientSecret', 'toggleClientPass'));
 
     function copyToClipboard(text, type) {
       if (!text) return;
@@ -614,6 +616,10 @@
     function showApp() { 
       document.getElementById('loginShell').style.display = 'none'; 
       document.getElementById('appShell').style.display = 'flex'; 
+      
+      // Defeat Chrome: Remove login fields from memory while using app so it stops scanning them
+      const pBox = document.getElementById('authPassword');
+      if(pBox) { pBox.type = 'text'; pBox.value = ''; }
     }
 
     // --- Data Logic (TickTick Model) ---
@@ -629,6 +635,14 @@
     }
 
     function enforceRoleUI() {
+        if (sortedFolders.length === 0) {
+            document.getElementById('openAddClientModalBtn').style.display = 'none';
+            document.getElementById('folderToolsUI').style.display = 'flex';
+            document.getElementById('folderLabel').textContent = 'No Folders';
+            document.getElementById('roleBadge').style.display = 'none';
+            return;
+        }
+
         const role = getRole();
         const badge = document.getElementById('roleBadge');
         
@@ -709,7 +723,7 @@
             }
         }, (error) => {
             console.error("Firebase Snapshot Error:", error);
-            setSyncStatus('Access Denied/Offline');
+            setSyncStatus('Database Error');
         });
 
         const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', activeUser.email));
@@ -761,7 +775,18 @@
       });
       
       const cf = currentFolder();
-      document.getElementById('folderLabel').textContent = cf ? cf.name : 'Endpoints';
+      if(cf) document.getElementById('folderLabel').textContent = cf.name;
+    }
+
+    // Safe HTML Escaping (Crash-proof Regex approach)
+    function escapeHtml(value) { 
+        if (value === null || value === undefined) return '';
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;'); 
     }
 
     function renderTable() {
@@ -794,14 +819,14 @@
               <div style="display:flex; align-items:center; gap:8px;">
                 <span class="hidden-pass">••••••••</span><span class="real-pass" style="display:none"></span>
                 ${client.password ? `
-                  <button class="btn-icon-micro eye-btn" title="Show password">${ICONS.eye}</button>
-                  <button class="btn-icon-micro copy-btn" title="Copy Password">${ICONS.copy}</button>
+                  <button class="btn-icon-micro eye-btn" title="Show key">${ICONS.eye}</button>
+                  <button class="btn-icon-micro copy-btn" title="Copy Key">${ICONS.copy}</button>
                 ` : ''}
               </div>`;
             passwordCell.querySelector('.real-pass').textContent = client.password;
             
             const copyPassBtn = passwordCell.querySelector('.copy-btn');
-            if (copyPassBtn) copyPassBtn.addEventListener('click', () => copyToClipboard(client.password, 'Password'));
+            if (copyPassBtn) copyPassBtn.addEventListener('click', () => copyToClipboard(client.password, 'Auth Key'));
 
             const eyeBtn = passwordCell.querySelector('.eye-btn');
             if (eyeBtn) {
@@ -953,7 +978,7 @@
     function resetForm() {
       document.getElementById('clientName').value = ''; 
       document.getElementById('clientId').value = ''; 
-      document.getElementById('clientPassword').value = ''; 
+      document.getElementById('clientSecret').value = ''; 
       document.getElementById('clientNotes').value = '';
       editIndex = null; 
       document.getElementById('clientModalTitle').textContent = 'Add Client';
@@ -967,7 +992,7 @@
       
       document.getElementById('clientName').value = client.name; 
       document.getElementById('clientId').value = client.id;
-      document.getElementById('clientPassword').value = client.password; 
+      document.getElementById('clientSecret').value = client.password; 
       document.getElementById('clientNotes').value = client.notes;
       
       document.getElementById('clientModalTitle').textContent = `Edit Client #${index + 1}`;
@@ -1070,13 +1095,18 @@
 
       const name = document.getElementById('clientName').value.trim();
       const id = document.getElementById('clientId').value.trim(); 
-      const password = document.getElementById('clientPassword').value.trim();
+      const password = document.getElementById('clientSecret').value.trim();
       const notes = document.getElementById('clientNotes').value.trim();
 
       if (!name || !id) { showToast('Client Name and ID are required.', true); return; }
 
       const isDup = folder.clients.some((c, i) => i !== editIndex && (c.id === id || c.name === name));
       if (isDup) { showToast('A client with this Name or ID already exists here.', true); return; }
+
+      // Disable button to prevent double execution
+      const btn = document.getElementById('saveClientBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
 
       const payload = { name, id, password, notes };
       
@@ -1099,23 +1129,25 @@
         }
       }
 
-      // WIPE memory instantly before closing modal to prevent browser logging
-      document.getElementById('clientName').value = '';
-      document.getElementById('clientId').value = '';
-      document.getElementById('clientPassword').value = '';
-      document.getElementById('clientNotes').value = '';
-      
-      closeClientModal();
-      
-      // SYNCHRONOUS RENDER to fix the invisible client bug!
+      // 1. Force Synchronous UI update instantly so it visually appears
       renderTable();
       
-      // Send to cloud in the background
+      // 2. Wipe memory and close modal to prevent Chrome password scanning
+      document.getElementById('clientName').value = '';
+      document.getElementById('clientId').value = '';
+      document.getElementById('clientSecret').value = '';
+      document.getElementById('clientNotes').value = '';
+      closeClientModal();
+      
+      // 3. Send to cloud in background safely
       try {
           await persistFolder(folder);
       } catch (err) {
           showToast('Failed to sync to cloud.', true);
           console.error(err);
+      } finally {
+          btn.disabled = false;
+          btn.textContent = 'Save Client';
       }
     });
 
@@ -1179,7 +1211,6 @@
       currentFolderId = null;
       editIndex = null;
       
-      // Clear Chrome Auth Cache to stop lingering prompts
       const eBox = document.getElementById('authEmail'); const pBox = document.getElementById('authPassword');
       if(eBox) eBox.value = ''; if(pBox) pBox.value = '';
       
@@ -1222,7 +1253,7 @@
             setSyncStatus('Loading...');
             
             try {
-                // Auto-create default folder if the user has absolutely nothing
+                // Auto-create default folder instantly if empty
                 const qOwned = query(collection(db, 'folders'), where('owner', '==', user.uid));
                 const snap = await getDocs(qOwned);
                 const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', user.email));
@@ -1239,7 +1270,9 @@
                         order: Date.now(),
                         createdAt: serverTimestamp()
                     };
-                    await addDoc(collection(db, 'folders'), newFolder);
+                    const docRef = await addDoc(collection(db, 'folders'), newFolder);
+                    foldersMap.set(docRef.id, { id: docRef.id, ...newFolder });
+                    processFoldersMap();
                 }
 
                 setupDataListeners();
