@@ -75,6 +75,7 @@
     .input-wrapper input { padding-right: 40px; }
     .icon-btn-absolute { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
     .icon-btn-absolute:hover { color: var(--text); }
+    .icon-btn-absolute svg { width: 16px !important; height: 16px !important; pointer-events: none; }
 
     button { border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); outline: none; }
     button:active:not(:disabled) { transform: scale(0.98); }
@@ -84,11 +85,11 @@
     .btn-main:hover:not(:disabled) { background: var(--primary-hover); }
     .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 10px 18px; border-radius: var(--radius-sm); }
     .btn-secondary:hover:not(:disabled) { background: rgba(128, 128, 128, 0.1); border-color: var(--border-focus); }
+    
     .btn-icon-only { padding: 8px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: var(--radius-sm); }
     .btn-icon-only:hover:not(:disabled) { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border-focus); }
-    
     .btn-icon-only svg { width: 16px !important; height: 16px !important; pointer-events: none;}
-    .btn-action svg { width: 16px !important; height: 16px !important; pointer-events: none; }
+    
     .btn-icon-micro { padding: 6px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: 4px; display: inline-flex; cursor: pointer;}
     .btn-icon-micro:hover { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border); }
     .btn-icon-micro svg { width: 14px !important; height: 14px !important; pointer-events: none;}
@@ -102,7 +103,6 @@
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; animation: fadeInModal 0.2s ease-out; }
     @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
     
-    /* Fixing the confirmation modal to aggressively overlap everything else */
     #modalOverlay { z-index: 2000 !important; }
     
     .modal-card { width: 100%; max-width: 400px; padding: 28px; border-radius: var(--radius-md); }
@@ -170,7 +170,11 @@
     tbody tr:last-child td { border-bottom: none; }
     .tag { display: inline-flex; padding: 6px 12px; border-radius: var(--radius-full); background: rgba(128, 128, 128, 0.08); color: var(--text-muted); font-size: 12px; border: 1px solid var(--border); }
     
-    .table-actions { display: flex; gap: 6px; }
+    .table-actions { display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+    .btn-action { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--radius-sm); background: transparent; border: 1px solid transparent; color: var(--text-muted); transition: all 0.2s; cursor: pointer; flex-shrink: 0; }
+    .btn-action:hover:not(:disabled) { background: rgba(128, 128, 128, 0.1); border-color: var(--border); color: var(--text); }
+    .btn-action svg { width: 16px !important; height: 16px !important; pointer-events: none; }
+    
     .footer { text-align: center; padding: 32px 0 16px 0; color: var(--text-muted); font-size: 13px; margin-top: auto; }
 
     @media (max-width: 768px) {
@@ -437,7 +441,7 @@
       down: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>',
       copy: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>',
       userRemove: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="18" y1="8" x2="23" y2="13"></line><line x1="23" y1="8" x2="18" y2="13"></line></svg>',
-      userIcon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'
+      userIcon: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'
     };
 
     const embeddedFirebaseConfig = {
@@ -507,7 +511,6 @@
           if(auth) { try { await setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence); } catch (error) { console.error(error); } }
         });
 
-        // Click to Toggle Passwords safely
         bindEvent('toggleAuthPass', 'click', () => {
           const input = document.getElementById('authPassword');
           const btn = document.getElementById('toggleAuthPass');
@@ -515,6 +518,7 @@
           else { input.type = 'password'; btn.innerHTML = ICONS.eye; }
         });
 
+        // Secure Toggle for Auth Key in Client Modal
         bindEvent('toggleClientPass', 'click', () => {
           const input = document.getElementById('val_s');
           const btn = document.getElementById('toggleClientPass');
@@ -527,7 +531,6 @@
           }
         });
         
-        // Handle 'Enter' securely in Add Client Modal
         ['val_n', 'val_i', 'val_s', 'val_t'].forEach(id => {
             const el = document.getElementById(id);
             if(el) {
@@ -542,7 +545,6 @@
             }
         });
         
-        // Modal Dropdown Logic
         const shareRoleWrap = document.getElementById('shareRoleWrap');
         const shareRoleTrigger = document.getElementById('shareRoleTrigger');
         const shareRoleInput = document.getElementById('shareRoleInput');
@@ -589,9 +591,72 @@
             e.preventDefault();
             const cf = currentFolder();
             if(!cf) return;
-            const msg = `You have been invited to access the "${cf.name}" folder on the TechBugs RustDesk Directory. Log in to view the endpoints: ${window.location.href}`;
+            const email = document.getElementById('val_em_share').value.trim().toLowerCase();
+            const emailPrefix = email ? `Please log in with your email id: ${email}\n\n` : ``;
+            const msg = `${emailPrefix}You have been invited to access the "${cf.name}" folder on the TechBugs RustDesk Directory. Log in to view the endpoints: ${window.location.href}`;
             copyToClipboard(msg, 'Invite Link');
         });
+        
+        // --- 100% CRASH-PROOF DELEGATED TABLE CLICKS ---
+        const cBody = document.getElementById('clientsBody');
+        if (cBody) {
+            cBody.addEventListener('click', async (e) => {
+                const btn = e.target.closest('button');
+                if(!btn) return;
+                
+                const idxRaw = btn.getAttribute('data-idx');
+                const folder = currentFolder();
+                if (!folder) return;
+                
+                if (btn.classList.contains('action-connect')) {
+                    const cid = btn.getAttribute('data-id');
+                    if (cid) window.location.href = `rustdesk://${encodeURIComponent(cid.replace(/\s+/g, ''))}`;
+                }
+                else if (btn.classList.contains('action-copyid')) {
+                    copyToClipboard(btn.getAttribute('data-id'), 'ID');
+                }
+                else if (btn.classList.contains('action-copykey')) {
+                    copyToClipboard(btn.getAttribute('data-key'), 'Auth Key');
+                }
+                else if (btn.classList.contains('action-eyekey')) {
+                    const hiddenSpan = btn.parentElement.querySelector('.hidden-pass');
+                    const realSpan = btn.parentElement.querySelector('.real-pass');
+                    if (hiddenSpan.style.display === 'none') {
+                        hiddenSpan.style.display = 'inline';
+                        realSpan.style.display = 'none';
+                        btn.innerHTML = ICONS.eye;
+                    } else {
+                        hiddenSpan.style.display = 'none';
+                        realSpan.style.display = 'inline';
+                        btn.innerHTML = ICONS.eyeOff;
+                    }
+                }
+                else if (idxRaw !== null) {
+                    const idx = parseInt(idxRaw);
+                    if (btn.classList.contains('action-edit')) {
+                        loadIntoForm(idx);
+                    }
+                    else if (btn.classList.contains('action-up')) {
+                        [folder.clients[idx], folder.clients[idx - 1]] = [folder.clients[idx - 1], folder.clients[idx]];
+                        renderTable(); 
+                        try { await persistFolder(folder); } catch(err){}
+                    }
+                    else if (btn.classList.contains('action-down')) {
+                        [folder.clients[idx], folder.clients[idx + 1]] = [folder.clients[idx + 1], folder.clients[index]];
+                        renderTable(); 
+                        try { await persistFolder(folder); } catch(err){}
+                    }
+                    else if (btn.classList.contains('action-del')) {
+                        const confirmDel = await openModal('Delete Client', `Are you sure you want to delete this client?`);
+                        if (confirmDel) {
+                            folder.clients.splice(idx, 1);
+                            renderTable(); 
+                            try { await persistFolder(folder); showToast('Client deleted'); } catch (err) {}
+                        }
+                    }
+                }
+            });
+        }
         
         initializeFirebase();
     });
@@ -612,7 +677,8 @@
             const mo = document.getElementById('modalOverlay');
             if(mo && mo.style.display === 'flex') {
                 e.preventDefault();
-                document.getElementById('modalConfirm').click();
+                const confirmBtn = document.getElementById('modalConfirm');
+                if(confirmBtn) confirmBtn.click();
             }
         }
     });
@@ -862,21 +928,23 @@
       if(cf) document.getElementById('folderLabel').textContent = cf.name;
     }
 
-    // Safe HTML Escaping
+    // Safe HTML Escaping for String Building
     function escapeHtml(value) { 
         if (!value) return '';
         return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); 
     }
 
-    // 100% PURE DOM RENDERING (Completely Crash-Proof, Guaranteed Action Buttons)
+    // --- DOM STRING RENDERER (ULTRA FAST & SAFE) ---
     function renderTable() {
       const cBody = document.getElementById('clientsBody');
       const searchBx = document.getElementById('searchBox');
       if(!cBody || !searchBx) return;
 
-      cBody.innerHTML = '';
       const folder = currentFolder();
-      if (!folder || !folder.clients) return;
+      if (!folder || !folder.clients) {
+          cBody.innerHTML = '';
+          return;
+      }
 
       const queryTxt = searchBx.value.trim().toLowerCase();
       const filtered = queryTxt ? folder.clients.filter(c => 
@@ -887,173 +955,54 @@
       const role = getRole();
       const isViewer = (role === 'viewer');
 
+      let html = '';
+      
       filtered.forEach((client) => {
-        const index = folder.clients.indexOf(client);
-        const tr = document.createElement('tr');
+          const index = folder.clients.indexOf(client);
+          
+          const upDisabled = (index === 0 || queryTxt !== '') ? 'disabled' : '';
+          const downDisabled = (index === folder.clients.length - 1 || queryTxt !== '') ? 'disabled' : '';
 
-        // --- 1. Client Name ---
-        const tdName = document.createElement('td');
-        tdName.style.fontWeight = '500';
-        tdName.style.color = 'var(--text)';
-        tdName.textContent = client.name || '';
-        tr.appendChild(tdName);
+          const passCellHtml = client.password ? `
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="hidden-pass">••••••••</span>
+                <span class="real-pass" style="display:none;">${escapeHtml(client.password)}</span>
+                <button class="btn-icon-micro action-eyekey" title="Show key">${ICONS.eye}</button>
+                <button class="btn-icon-micro action-copykey" data-key="${escapeHtml(client.password)}" title="Copy Key">${ICONS.copy}</button>
+              </div>
+          ` : '';
 
-        // --- 2. Client ID ---
-        const tdId = document.createElement('td');
-        tdId.style.fontFamily = 'monospace';
-        const idWrap = document.createElement('div');
-        idWrap.style.display = 'flex';
-        idWrap.style.alignItems = 'center';
-        idWrap.style.gap = '8px';
-        
-        const idSpan = document.createElement('span');
-        idSpan.textContent = client.id || '';
-        
-        const copyIdBtn = document.createElement('button');
-        copyIdBtn.className = 'btn-icon-micro';
-        copyIdBtn.title = 'Copy ID';
-        copyIdBtn.innerHTML = ICONS.copy;
-        copyIdBtn.onclick = () => copyToClipboard(client.id, 'ID');
-        
-        idWrap.appendChild(idSpan);
-        idWrap.appendChild(copyIdBtn);
-        tdId.appendChild(idWrap);
-        tr.appendChild(tdId);
+          const actionCellHtml = isViewer ? `
+              <div class="table-actions">
+                  <button class="btn-action action-connect" data-id="${escapeHtml(client.id)}" title="Connect">${ICONS.connect}</button>
+              </div>
+          ` : `
+              <div class="table-actions">
+                  <button class="btn-action action-connect" data-id="${escapeHtml(client.id)}" title="Connect">${ICONS.connect}</button>
+                  <button class="btn-action action-up" data-idx="${index}" title="Move Up" ${upDisabled}>${ICONS.up}</button>
+                  <button class="btn-action action-down" data-idx="${index}" title="Move Down" ${downDisabled}>${ICONS.down}</button>
+                  <button class="btn-action action-edit" data-idx="${index}" title="Edit">${ICONS.edit}</button>
+                  <button class="btn-action action-del" data-idx="${index}" title="Delete" style="color:var(--danger);">${ICONS.delete}</button>
+              </div>
+          `;
 
-        // --- 3. Auth Key ---
-        const tdPass = document.createElement('td');
-        tdPass.style.fontFamily = 'monospace';
-        
-        if (client.password) {
-            const passWrap = document.createElement('div');
-            passWrap.style.display = 'flex';
-            passWrap.style.alignItems = 'center';
-            passWrap.style.gap = '8px';
-            
-            const hiddenSpan = document.createElement('span');
-            hiddenSpan.textContent = '••••••••';
-            
-            const realSpan = document.createElement('span');
-            realSpan.textContent = client.password;
-            realSpan.style.display = 'none';
-            
-            const eyeBtn = document.createElement('button');
-            eyeBtn.className = 'btn-icon-micro';
-            eyeBtn.title = 'Show key';
-            eyeBtn.innerHTML = ICONS.eye;
-            
-            // Pure Click Toggle for Table Rows
-            eyeBtn.onclick = () => {
-                if (hiddenSpan.style.display === 'none') {
-                    hiddenSpan.style.display = 'inline';
-                    realSpan.style.display = 'none';
-                    eyeBtn.innerHTML = ICONS.eye;
-                } else {
-                    hiddenSpan.style.display = 'none';
-                    realSpan.style.display = 'inline';
-                    eyeBtn.innerHTML = ICONS.eyeOff;
-                }
-            };
-            
-            const copyPassBtn = document.createElement('button');
-            copyPassBtn.className = 'btn-icon-micro';
-            copyPassBtn.title = 'Copy Key';
-            copyPassBtn.innerHTML = ICONS.copy;
-            copyPassBtn.onclick = () => copyToClipboard(client.password, 'Auth Key');
-            
-            passWrap.appendChild(hiddenSpan);
-            passWrap.appendChild(realSpan);
-            passWrap.appendChild(eyeBtn);
-            passWrap.appendChild(copyPassBtn);
-            tdPass.appendChild(passWrap);
-        }
-        tr.appendChild(tdPass);
-
-        // --- 4. Notes ---
-        const tdNotes = document.createElement('td');
-        if (client.notes) {
-            const tag = document.createElement('span');
-            tag.className = 'tag';
-            tag.textContent = client.notes;
-            tdNotes.appendChild(tag);
-        }
-        tr.appendChild(tdNotes);
-
-        // --- 5. Actions ---
-        const tdActions = document.createElement('td');
-        const actWrap = document.createElement('div');
-        actWrap.className = 'table-actions';
-
-        const connectBtn = document.createElement('button');
-        connectBtn.className = 'btn-action';
-        connectBtn.title = 'Connect';
-        connectBtn.innerHTML = ICONS.connect;
-        connectBtn.onclick = () => { if (client.id) window.location.href = `rustdesk://${encodeURIComponent(client.id.replace(/\s+/g, ''))}`; };
-        actWrap.appendChild(connectBtn);
-
-        if (!isViewer) {
-            const btnUp = document.createElement('button');
-            btnUp.className = 'btn-action';
-            btnUp.title = 'Move Up';
-            btnUp.innerHTML = ICONS.up;
-            btnUp.disabled = index === 0 || queryTxt !== '';
-            btnUp.onclick = async () => {
-                if (index > 0 && !queryTxt) {
-                    [folder.clients[index], folder.clients[index - 1]] = [folder.clients[index - 1], folder.clients[index]];
-                    renderTable(); // Force synchronous UI update
-                    try { await persistFolder(folder); } catch(e){}
-                }
-            };
-
-            const btnDown = document.createElement('button');
-            btnDown.className = 'btn-action';
-            btnDown.title = 'Move Down';
-            btnDown.innerHTML = ICONS.down;
-            btnDown.disabled = index === folder.clients.length - 1 || queryTxt !== '';
-            btnDown.onclick = async () => {
-                if (index < folder.clients.length - 1 && !queryTxt) {
-                    [folder.clients[index], folder.clients[index + 1]] = [folder.clients[index + 1], folder.clients[index]];
-                    renderTable(); // Force synchronous UI update
-                    try { await persistFolder(folder); } catch(e){}
-                }
-            };
-
-            const editBtn = document.createElement('button');
-            editBtn.className = 'btn-action';
-            editBtn.title = 'Edit';
-            editBtn.innerHTML = ICONS.edit;
-            editBtn.onclick = () => loadIntoForm(index);
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn-action';
-            deleteBtn.title = 'Delete';
-            deleteBtn.style.color = 'var(--danger)';
-            deleteBtn.innerHTML = ICONS.delete;
-            deleteBtn.onclick = async () => {
-              const confirmDel = await openModal('Delete Client', `Are you sure you want to delete "${client.name}"?`);
-              if (!confirmDel) return;
-              folder.clients.splice(index, 1);
-              
-              renderTable(); // Force synchronous UI update
-              try {
-                  await persistFolder(folder);
-                  showToast('Client deleted');
-              } catch (e) {
-                  showToast('Cloud sync failed.', true);
-              }
-            };
-            
-            actWrap.appendChild(btnUp);
-            actWrap.appendChild(btnDown);
-            actWrap.appendChild(editBtn);
-            actWrap.appendChild(deleteBtn);
-        }
-
-        tdActions.appendChild(actWrap);
-        tr.appendChild(tdActions);
-
-        cBody.appendChild(tr);
+          html += `
+            <tr>
+              <td style="font-weight:500; color:var(--text);">${escapeHtml(client.name)}</td>
+              <td style="font-family:monospace;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span>${escapeHtml(client.id)}</span>
+                  <button class="btn-icon-micro action-copyid" data-id="${escapeHtml(client.id)}" title="Copy ID">${ICONS.copy}</button>
+                </div>
+              </td>
+              <td style="font-family:monospace;">${passCellHtml}</td>
+              <td>${client.notes ? `<span class="tag">${escapeHtml(client.notes)}</span>` : ''}</td>
+              <td>${actionCellHtml}</td>
+            </tr>
+          `;
       });
+      
+      cBody.innerHTML = html;
     }
 
     // --- Share Folder Logic ---
@@ -1265,20 +1214,20 @@
         }
       }
 
-      // 1. Physically blur inputs and hide modal (Tricks Chrome manager)
+      // 1. Physically blur inputs and hide modal to trick Chrome
       document.getElementById('val_n').blur();
       document.getElementById('val_s').blur();
       document.getElementById('clientModalOverlay').style.display = 'none';
       
-      // 2. Clear values 100ms later so Chrome doesn't detect a "submit and wipe" heuristic
+      // 2. Clear values later so Chrome doesn't detect a "submit and wipe" heuristic
       setTimeout(() => {
           document.getElementById('val_n').value = '';
           document.getElementById('val_i').value = '';
           document.getElementById('val_s').value = '';
           document.getElementById('val_t').value = '';
-      }, 100);
+      }, 200);
       
-      // 3. Force Sync UI instantly using the DOM creator
+      // 3. Force Sync UI instantly
       renderTable();
       
       // 4. Persist to DB securely
@@ -1356,6 +1305,7 @@
             setSyncStatus('Loading...');
             
             try {
+                // Auto-create default folder instantly if empty
                 const qOwned = query(collection(db, 'folders'), where('owner', '==', user.uid));
                 const snap = await getDocs(qOwned);
                 const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', user.email));
