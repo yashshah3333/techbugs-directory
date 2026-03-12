@@ -102,16 +102,15 @@
     @keyframes slideIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
     @keyframes slideOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.95); } }
 
-    /* Modals now delegate scrolling to the full page overlay instead of tight containers */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: none; align-items: flex-start; justify-content: center; z-index: 2000; padding: 4vh 16px; overflow-y: auto; animation: fadeInModal 0.2s ease-out; }
+    /* Modals no longer trap content. The overlay scrolls, the card allows overflow. */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: none; align-items: flex-start; justify-content: center; z-index: 2000; padding: 10vh 16px; overflow-y: auto; animation: fadeInModal 0.2s ease-out; }
     @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
     
-    .modal-card { width: 100%; max-width: 400px; padding: 28px; border-radius: var(--radius-md); margin: auto; position: relative; }
+    .modal-card { width: 100%; max-width: 400px; padding: 28px; border-radius: var(--radius-md); margin: 0 auto; position: relative; }
     .modal-card h3 { font-size: 18px; margin-bottom: 8px; font-weight: 600; }
     .modal-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;}
     .wide-modal-card { max-width: 540px; width: 100%; }
 
-    /* New Clean Table class for the Share Modal */
     .share-table-wrap { margin-top: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: rgba(128, 128, 128, 0.02); }
     .share-table-wrap table { width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed; }
     .share-table-wrap th { font-size: 13px; font-weight: 500; color: var(--text-muted); padding: 12px 16px; border-bottom: 1px solid var(--border); }
@@ -479,7 +478,9 @@
     let unsubscribeShared = null;
     let lastInvitedEmail = ''; 
 
-    // --- Core Master Delegate Click Handler ---
+    // --- Theme Logic & Event Delegation ---
+    if (localStorage.getItem(THEME_KEY) === 'light') document.body.classList.add('light-mode');
+    
     document.addEventListener('click', async (e) => {
         
         const toggleBtn = e.target.closest('.theme-toggle');
@@ -1340,6 +1341,27 @@
           if(auth) { try { await setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence); } catch (error) { console.error(error); } }
         });
 
+        bindEvent('toggleAuthPass', 'click', () => {
+          const input = document.getElementById('authPassword');
+          const btn = document.getElementById('toggleAuthPass');
+          if (input.type === 'password') { input.type = 'text'; btn.innerHTML = ICONS.eyeOff; } 
+          else { input.type = 'password'; btn.innerHTML = ICONS.eye; }
+        });
+
+        ['val_n', 'val_i', 'val_s', 'val_t'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('keydown', (e) => {
+                    if(e.key === 'Enter') {
+                        e.preventDefault();
+                        if (!document.getElementById('saveClientBtn').disabled) {
+                            document.getElementById('saveClientBtn').click();
+                        }
+                    }
+                });
+            }
+        });
+
         bindEvent('inviteUserBtn', 'click', async () => {
             const cf = currentFolder();
             if(!cf) return;
@@ -1357,7 +1379,7 @@
             
             cf.members = newMembers; cf.sharedWith = newShared;
             
-            lastInvitedEmail = email;
+            lastInvitedEmail = email; 
             document.getElementById('val_em_share').value = '';
             
             renderShareTable();
