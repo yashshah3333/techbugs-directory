@@ -61,7 +61,7 @@
     input::placeholder { color: var(--text-muted); opacity: 0.8; }
     input:focus, select:focus { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
 
-    /* ENTERPRISE MASK: Forces Chrome to ignore the password field completely */
+    /* ENTERPRISE MASK: Forces Chrome to completely ignore the secret field */
     .mask-pw { -webkit-text-security: disc; text-security: disc; }
 
     .custom-select-wrap { position: relative; width: 100%; user-select: none; }
@@ -202,7 +202,7 @@
       </div>
       
       <div style="display:flex; gap:10px; margin-bottom: 12px; position: relative;">
-        <input type="text" id="shareEmailInput" placeholder="Enter email address..." style="flex:2;" autocomplete="off" data-lpignore="true">
+        <input type="text" id="val_em_share" placeholder="Enter email address..." style="flex:2;" autocomplete="off" data-lpignore="true">
         
         <div class="custom-select-wrap" id="shareRoleWrap" style="flex:1;">
             <div class="custom-select-trigger" id="shareRoleTrigger">
@@ -246,29 +246,29 @@
       <div class="form-wrapper">
         <div class="form-grid">
           <div class="field">
-            <label for="clientName">Client name</label>
-            <input type="text" id="clientName" placeholder="Office-PC-Solapur" autocomplete="off" data-lpignore="true">
+            <label>Name</label>
+            <input type="text" id="val_n" placeholder="Office-PC-Solapur" autocomplete="off" data-lpignore="true">
           </div>
           <div class="field">
-            <label for="clientId">RustDesk ID</label>
-            <input type="text" id="clientId" placeholder="123 456 789" autocomplete="off" data-lpignore="true">
+            <label>Remote ID</label>
+            <input type="text" id="val_i" placeholder="123 456 789" autocomplete="off" data-lpignore="true">
           </div>
           <div class="field">
-            <label for="clientSecret">Auth Key</label>
+            <label>Auth Key</label>
             <div class="input-wrapper">
-              <input type="text" id="clientSecret" class="mask-pw" placeholder="Device access key" autocomplete="off" spellcheck="false" data-lpignore="true">
+              <input type="text" id="val_s" class="mask-pw" placeholder="Device access key" autocomplete="off" spellcheck="false" data-lpignore="true">
               <button type="button" class="icon-btn-absolute" id="toggleClientPass" title="Show key">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
           </div>
           <div class="field">
-            <label for="clientNotes">Notes / Tag</label>
-            <input type="text" id="clientNotes" placeholder="Win 10 | Shop PC" autocomplete="off" data-lpignore="true">
+            <label>Tags</label>
+            <input type="text" id="val_t" placeholder="Win 10 | Shop PC" autocomplete="off" data-lpignore="true">
           </div>
           <div class="field" id="moveFolderWrap" style="display:none;">
-            <label for="clientFolderSelect">Folder</label>
-            <select id="clientFolderSelect"></select>
+            <label>Folder</label>
+            <select id="val_f"></select>
           </div>
         </div>
         <div class="form-footer">
@@ -284,7 +284,7 @@
       <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
     </button>
-    <div class="login-card glass-panel">
+    <div class="login-card glass-panel" id="authBoxCore">
       <div class="login-header">
         <h2>RustDesk Address Book</h2>
         <p>Sign in to access your synchronized endpoints.</p>
@@ -475,8 +475,8 @@
         }
     });
 
-    // Submitting client form on Enter safely
-    ['clientName', 'clientId', 'clientSecret', 'clientNotes'].forEach(id => {
+    // Handle 'Enter' internally in the Client Modal to save cleanly
+    ['val_n', 'val_i', 'val_s', 'val_t'].forEach(id => {
         const el = document.getElementById(id);
         if(el) {
             el.addEventListener('keydown', (e) => {
@@ -561,7 +561,7 @@
     // --- Modals ---
     function openClientModal() {
       const modal = document.getElementById('clientModalOverlay');
-      if(modal) { modal.style.display = 'flex'; document.getElementById('clientName').focus(); }
+      if(modal) { modal.style.display = 'flex'; document.getElementById('val_n').focus(); }
     }
     function closeClientModal() {
       const modal = document.getElementById('clientModalOverlay');
@@ -577,7 +577,7 @@
     }
     function closeShareModal() { 
         document.getElementById('shareModalOverlay').style.display = 'none'; 
-        document.getElementById('shareEmailInput').value = ''; 
+        document.getElementById('val_em_share').value = ''; 
     }
     bindEvent('shareFolderBtn', 'click', openShareModal);
     bindEvent('closeShareModalBtn', 'click', closeShareModal);
@@ -594,13 +594,13 @@
           input.classList.remove('mask-pw');
           btn.innerHTML = ICONS.eyeOff;
       } else { 
-          if(inputId === 'clientSecret') input.classList.add('mask-pw');
+          if(inputId === 'val_s') input.classList.add('mask-pw');
           else input.type = 'password'; 
           btn.innerHTML = ICONS.eye; 
       }
     }
     bindEvent('toggleAuthPass', 'click', () => togglePassVisibility('authPassword', 'toggleAuthPass'));
-    bindEvent('toggleClientPass', 'click', () => togglePassVisibility('clientSecret', 'toggleClientPass'));
+    bindEvent('toggleClientPass', 'click', () => togglePassVisibility('val_s', 'toggleClientPass'));
 
     function copyToClipboard(text, type) {
       if (!text) return;
@@ -617,9 +617,9 @@
       document.getElementById('loginShell').style.display = 'none'; 
       document.getElementById('appShell').style.display = 'flex'; 
       
-      // Defeat Chrome: Remove login fields from memory while using app so it stops scanning them
-      const pBox = document.getElementById('authPassword');
-      if(pBox) { pBox.type = 'text'; pBox.value = ''; }
+      // Nuke the Auth Form entirely from the DOM to protect the App from Chrome Scanner
+      const authBox = document.getElementById('authBoxCore');
+      if (authBox) authBox.innerHTML = '';
     }
 
     // --- Data Logic (TickTick Model) ---
@@ -637,9 +637,16 @@
     function enforceRoleUI() {
         if (sortedFolders.length === 0) {
             document.getElementById('openAddClientModalBtn').style.display = 'none';
-            document.getElementById('folderToolsUI').style.display = 'flex';
+            document.getElementById('folderToolsUI').style.display = 'flex'; // Allow adding folders
             document.getElementById('folderLabel').textContent = 'No Folders';
             document.getElementById('roleBadge').style.display = 'none';
+            
+            document.getElementById('shareFolderBtn').style.display = 'none';
+            document.getElementById('renameFolderBtn').style.display = 'none';
+            document.getElementById('deleteFolderBtn').style.display = 'none';
+            document.getElementById('moveLeftBtn').style.display = 'none';
+            document.getElementById('moveRightBtn').style.display = 'none';
+            document.getElementById('moveDivider').style.display = 'none';
             return;
         }
 
@@ -778,7 +785,7 @@
       if(cf) document.getElementById('folderLabel').textContent = cf.name;
     }
 
-    // Safe HTML Escaping (Crash-proof Regex approach)
+    // Safe HTML Escaping
     function escapeHtml(value) { 
         if (value === null || value === undefined) return '';
         return String(value)
@@ -789,6 +796,7 @@
             .replace(/'/g, '&#39;'); 
     }
 
+    // 100% Pure DOM Table Rendering (Crash-Proof)
     function renderTable() {
       const cBody = document.getElementById('clientsBody');
       const searchBx = document.getElementById('searchBox');
@@ -810,49 +818,136 @@
       filtered.forEach((client) => {
         try {
             const index = folder.clients.indexOf(client);
-            const row = document.createElement('tr');
+            const tr = document.createElement('tr');
 
-            // Password Cell
-            const passwordCell = document.createElement('td');
-            passwordCell.style.fontFamily = "monospace";
-            passwordCell.innerHTML = `
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="hidden-pass">••••••••</span><span class="real-pass" style="display:none"></span>
-                ${client.password ? `
-                  <button class="btn-icon-micro eye-btn" title="Show key">${ICONS.eye}</button>
-                  <button class="btn-icon-micro copy-btn" title="Copy Key">${ICONS.copy}</button>
-                ` : ''}
-              </div>`;
-            passwordCell.querySelector('.real-pass').textContent = client.password;
+            // --- 1. Client Name ---
+            const tdName = document.createElement('td');
+            tdName.style.fontWeight = '500';
+            tdName.style.color = 'var(--text)';
+            tdName.textContent = client.name || '';
+            tr.appendChild(tdName);
+
+            // --- 2. Client ID ---
+            const tdId = document.createElement('td');
+            tdId.style.fontFamily = 'monospace';
+            const idWrap = document.createElement('div');
+            idWrap.style.display = 'flex';
+            idWrap.style.alignItems = 'center';
+            idWrap.style.gap = '8px';
             
-            const copyPassBtn = passwordCell.querySelector('.copy-btn');
-            if (copyPassBtn) copyPassBtn.addEventListener('click', () => copyToClipboard(client.password, 'Auth Key'));
+            const idSpan = document.createElement('span');
+            idSpan.textContent = client.id || '';
+            
+            const copyIdBtn = document.createElement('button');
+            copyIdBtn.className = 'btn-icon-micro';
+            copyIdBtn.title = 'Copy ID';
+            copyIdBtn.innerHTML = ICONS.copy;
+            copyIdBtn.onclick = () => copyToClipboard(client.id, 'ID');
+            
+            idWrap.append(idSpan, copyIdBtn);
+            tdId.appendChild(idWrap);
+            tr.appendChild(tdId);
 
-            const eyeBtn = passwordCell.querySelector('.eye-btn');
-            if (eyeBtn) {
-              eyeBtn.addEventListener('mousedown', () => { passwordCell.querySelector('.hidden-pass').style.display = 'none'; passwordCell.querySelector('.real-pass').style.display = 'inline'; eyeBtn.innerHTML = ICONS.eyeOff; });
-              eyeBtn.addEventListener('mouseup', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; });
-              eyeBtn.addEventListener('mouseleave', () => { passwordCell.querySelector('.hidden-pass').style.display = 'inline'; passwordCell.querySelector('.real-pass').style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; });
+            // --- 3. Auth Key ---
+            const tdPass = document.createElement('td');
+            tdPass.style.fontFamily = 'monospace';
+            const passWrap = document.createElement('div');
+            passWrap.style.display = 'flex';
+            passWrap.style.alignItems = 'center';
+            passWrap.style.gap = '8px';
+            
+            const passHidden = document.createElement('span');
+            passHidden.textContent = '••••••••';
+            
+            const passReal = document.createElement('span');
+            passReal.textContent = client.password || '';
+            passReal.style.display = 'none';
+            
+            passWrap.append(passHidden, passReal);
+
+            if (client.password) {
+                const eyeBtn = document.createElement('button');
+                eyeBtn.className = 'btn-icon-micro';
+                eyeBtn.title = 'Show key';
+                eyeBtn.innerHTML = ICONS.eye;
+                eyeBtn.onmousedown = () => { passHidden.style.display = 'none'; passReal.style.display = 'inline'; eyeBtn.innerHTML = ICONS.eyeOff; };
+                eyeBtn.onmouseup = () => { passHidden.style.display = 'inline'; passReal.style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; };
+                eyeBtn.onmouseleave = () => { passHidden.style.display = 'inline'; passReal.style.display = 'none'; eyeBtn.innerHTML = ICONS.eye; };
+                
+                const copyPassBtn = document.createElement('button');
+                copyPassBtn.className = 'btn-icon-micro';
+                copyPassBtn.title = 'Copy Key';
+                copyPassBtn.innerHTML = ICONS.copy;
+                copyPassBtn.onclick = () => copyToClipboard(client.password, 'Auth Key');
+                
+                passWrap.append(eyeBtn, copyPassBtn);
             }
+            tdPass.appendChild(passWrap);
+            tr.appendChild(tdPass);
 
-            // Actions
-            const actions = document.createElement('td');
-            const actionWrap = document.createElement('div');
-            actionWrap.className = 'table-actions';
+            // --- 4. Notes ---
+            const tdNotes = document.createElement('td');
+            if (client.notes) {
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.textContent = client.notes;
+                tdNotes.appendChild(tag);
+            }
+            tr.appendChild(tdNotes);
+
+            // --- 5. Actions ---
+            const tdActions = document.createElement('td');
+            const actWrap = document.createElement('div');
+            actWrap.className = 'table-actions';
 
             const connectBtn = document.createElement('button');
-            connectBtn.className = 'btn-action'; connectBtn.innerHTML = ICONS.connect; connectBtn.title = 'Connect';
-            connectBtn.addEventListener('click', () => { if (client.id) window.location.href = `rustdesk://${encodeURIComponent(client.id.replace(/\s+/g, ''))}`; });
-            actionWrap.appendChild(connectBtn);
+            connectBtn.className = 'btn-action';
+            connectBtn.title = 'Connect';
+            connectBtn.innerHTML = ICONS.connect;
+            connectBtn.onclick = () => { if (client.id) window.location.href = `rustdesk://${encodeURIComponent(client.id.replace(/\s+/g, ''))}`; };
+            actWrap.appendChild(connectBtn);
 
             if (!isViewer) {
+                // Client Up Button
+                const btnUp = document.createElement('button');
+                btnUp.className = 'btn-action';
+                btnUp.title = 'Move Up';
+                btnUp.innerHTML = ICONS.up;
+                btnUp.disabled = index === 0 || queryTxt !== '';
+                btnUp.onclick = async () => {
+                    if (index > 0 && !queryTxt) {
+                        [folder.clients[index], folder.clients[index - 1]] = [folder.clients[index - 1], folder.clients[index]];
+                        renderTable(); // Force synchronous UI update
+                        try { await persistFolder(folder); } catch(e){}
+                    }
+                };
+                
+                // Client Down Button
+                const btnDown = document.createElement('button');
+                btnDown.className = 'btn-action';
+                btnDown.title = 'Move Down';
+                btnDown.innerHTML = ICONS.down;
+                btnDown.disabled = index === folder.clients.length - 1 || queryTxt !== '';
+                btnDown.onclick = async () => {
+                    if (index < folder.clients.length - 1 && !queryTxt) {
+                        [folder.clients[index], folder.clients[index + 1]] = [folder.clients[index + 1], folder.clients[index]];
+                        renderTable(); // Force synchronous UI update
+                        try { await persistFolder(folder); } catch(e){}
+                    }
+                };
+
                 const editBtn = document.createElement('button');
-                editBtn.className = 'btn-action'; editBtn.innerHTML = ICONS.edit; editBtn.title = 'Edit';
-                editBtn.addEventListener('click', () => loadIntoForm(index));
+                editBtn.className = 'btn-action';
+                editBtn.title = 'Edit';
+                editBtn.innerHTML = ICONS.edit;
+                editBtn.onclick = () => loadIntoForm(index);
 
                 const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'btn-action'; deleteBtn.style.color = 'var(--danger)'; deleteBtn.innerHTML = ICONS.delete; deleteBtn.title = 'Delete';
-                deleteBtn.addEventListener('click', async () => {
+                deleteBtn.className = 'btn-action';
+                deleteBtn.title = 'Delete';
+                deleteBtn.style.color = 'var(--danger)';
+                deleteBtn.innerHTML = ICONS.delete;
+                deleteBtn.onclick = async () => {
                   const confirmDel = await openModal('Delete Client', `Are you sure you want to delete "${client.name}"?`);
                   if (!confirmDel) return;
                   folder.clients.splice(index, 1);
@@ -864,29 +959,15 @@
                   } catch (e) {
                       showToast('Cloud sync failed.', true);
                   }
-                });
+                };
                 
-                actionWrap.appendChild(editBtn);
-                actionWrap.appendChild(deleteBtn);
+                actWrap.append(btnUp, btnDown, editBtn, deleteBtn);
             }
 
-            actions.appendChild(actionWrap);
+            tdActions.appendChild(actWrap);
+            tr.appendChild(tdActions);
 
-            row.innerHTML = `
-              <td style="font-weight:500; color:var(--text);">${escapeHtml(client.name)}</td>
-              <td style="font-family:monospace;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  ${escapeHtml(client.id)}
-                  <button class="btn-icon-micro copy-id-btn" title="Copy ID">${ICONS.copy}</button>
-                </div>
-              </td>
-              <td></td>
-              <td>${client.notes ? `<span class="tag">${escapeHtml(client.notes)}</span>` : ''}</td>
-            `;
-            row.querySelector('.copy-id-btn').addEventListener('click', () => copyToClipboard(client.id, 'ID'));
-            row.children[2].replaceWith(passwordCell);
-            row.appendChild(actions);
-            cBody.appendChild(row);
+            cBody.appendChild(tr);
             
         } catch (error) {
             console.error('Error rendering client index ' + folder.clients.indexOf(client), error);
@@ -938,7 +1019,7 @@
     bindEvent('inviteUserBtn', 'click', async () => {
       const cf = currentFolder();
       if(!cf) return;
-      const email = document.getElementById('shareEmailInput').value.trim().toLowerCase();
+      const email = document.getElementById('val_em_share').value.trim().toLowerCase();
       const role = document.getElementById('shareRoleInput').value;
       if(!email) { showToast('Enter an email address', true); return; }
       
@@ -957,7 +1038,7 @@
       cf.members = newMembers;
       cf.sharedWith = newShared;
       
-      document.getElementById('shareEmailInput').value = '';
+      document.getElementById('val_em_share').value = '';
       renderShareTable();
       showToast('Invitation granted!');
       
@@ -976,12 +1057,13 @@
 
     // --- Folder / Client Actions ---
     function resetForm() {
-      document.getElementById('clientName').value = ''; 
-      document.getElementById('clientId').value = ''; 
-      document.getElementById('clientSecret').value = ''; 
-      document.getElementById('clientNotes').value = '';
+      document.getElementById('val_n').value = ''; 
+      document.getElementById('val_i').value = ''; 
+      document.getElementById('val_s').value = ''; 
+      document.getElementById('val_t').value = '';
       editIndex = null; 
       document.getElementById('clientModalTitle').textContent = 'Add Client';
+      document.getElementById('moveFolderWrap').style.display = 'none';
       document.getElementById('saveClientBtn').textContent = 'Save Client';
     }
 
@@ -990,10 +1072,10 @@
       if (!client) return;
       editIndex = index;
       
-      document.getElementById('clientName').value = client.name; 
-      document.getElementById('clientId').value = client.id;
-      document.getElementById('clientSecret').value = client.password; 
-      document.getElementById('clientNotes').value = client.notes;
+      document.getElementById('val_n').value = client.name; 
+      document.getElementById('val_i').value = client.id;
+      document.getElementById('val_s').value = client.password; 
+      document.getElementById('val_t').value = client.notes;
       
       document.getElementById('clientModalTitle').textContent = `Edit Client #${index + 1}`;
       document.getElementById('saveClientBtn').textContent = 'Update Client';
@@ -1093,10 +1175,10 @@
       const folder = currentFolder();
       if (!folder) { showToast('Create a folder first.', true); return; }
 
-      const name = document.getElementById('clientName').value.trim();
-      const id = document.getElementById('clientId').value.trim(); 
-      const password = document.getElementById('clientSecret').value.trim();
-      const notes = document.getElementById('clientNotes').value.trim();
+      const name = document.getElementById('val_n').value.trim();
+      const id = document.getElementById('val_i').value.trim(); 
+      const password = document.getElementById('val_s').value.trim();
+      const notes = document.getElementById('val_t').value.trim();
 
       if (!name || !id) { showToast('Client Name and ID are required.', true); return; }
 
@@ -1111,6 +1193,7 @@
       const payload = { name, id, password, notes };
       
       if (editIndex === null) {
+        if(!folder.clients) folder.clients = [];
         folder.clients.push(payload);
         showToast('Client saved');
       } else {
@@ -1133,10 +1216,10 @@
       renderTable();
       
       // 2. Wipe memory and close modal to prevent Chrome password scanning
-      document.getElementById('clientName').value = '';
-      document.getElementById('clientId').value = '';
-      document.getElementById('clientSecret').value = '';
-      document.getElementById('clientNotes').value = '';
+      document.getElementById('val_n').value = '';
+      document.getElementById('val_i').value = '';
+      document.getElementById('val_s').value = '';
+      document.getElementById('val_t').value = '';
       closeClientModal();
       
       // 3. Send to cloud in background safely
@@ -1186,7 +1269,6 @@
     bindEvent('emailSignupBtn', 'click', async () => { try { await createAccount(); } catch (error) { setLoginStatus(error.message, 'error'); } });
     bindEvent('forgotPassBtn', 'click', async (e) => { e.preventDefault(); try { await resetPassword(); } catch (error) { setLoginStatus(error.message, 'error'); } });
     
-    // Auth password listener
     const authPwBox = document.getElementById('authPassword');
     if(authPwBox) {
         authPwBox.addEventListener('keydown', async (event) => { 
@@ -1203,19 +1285,9 @@
 
     async function logout() {
       if (auth) await signOut(auth);
-      if (unsubscribeOwned) unsubscribeOwned();
-      if (unsubscribeShared) unsubscribeShared();
       
-      foldersMap.clear();
-      sortedFolders = [];
-      currentFolderId = null;
-      editIndex = null;
-      
-      const eBox = document.getElementById('authEmail'); const pBox = document.getElementById('authPassword');
-      if(eBox) eBox.value = ''; if(pBox) pBox.value = '';
-      
-      resetForm();
-      showLogin();
+      // Physically refresh the browser. This completely wipes Chrome's form memory and guarantees a pristine state.
+      window.location.reload();
     }
     
     bindEvent('logoutBtn', 'click', logout);
