@@ -75,6 +75,7 @@
     .input-wrapper input { padding-right: 40px; }
     .icon-btn-absolute { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
     .icon-btn-absolute:hover { color: var(--text); }
+    .icon-btn-absolute svg { width: 16px !important; height: 16px !important; pointer-events: none; }
 
     button { border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); outline: none; }
     button:active:not(:disabled) { transform: scale(0.98); }
@@ -88,7 +89,9 @@
     .btn-icon-only { padding: 8px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: var(--radius-sm); }
     .btn-icon-only:hover:not(:disabled) { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border-focus); }
     .btn-icon-only svg { width: 16px !important; height: 16px !important; pointer-events: none;}
+    
     .btn-action svg { width: 16px !important; height: 16px !important; pointer-events: none; }
+    
     .btn-icon-micro { padding: 6px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: 4px; display: inline-flex; cursor: pointer;}
     .btn-icon-micro:hover { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border); }
     .btn-icon-micro svg { width: 14px !important; height: 14px !important; pointer-events: none;}
@@ -135,7 +138,7 @@
 
     .theme-toggle { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: var(--radius-sm); background: transparent; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
     .theme-toggle:hover { background: rgba(128, 128, 128, 0.1); color: var(--text); border-color: var(--border-focus); }
-    .theme-toggle svg { width: 18px; height: 18px; position: absolute; transition: transform 0.3s, opacity 0.3s; }
+    .theme-toggle svg { width: 18px !important; height: 18px !important; position: absolute; transition: transform 0.3s, opacity 0.3s; pointer-events: none; }
     .theme-toggle .sun { opacity: 0; transform: rotate(-90deg); }
     body.light-mode .theme-toggle .sun { opacity: 1; transform: rotate(0); }
     body.light-mode .theme-toggle .moon { opacity: 0; transform: rotate(90deg); }
@@ -198,8 +201,8 @@
       <p id="modalDesc"></p>
       <input type="text" id="modalInput" style="display:none;" autocomplete="off" data-lpignore="true">
       <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
-        <button class="btn-secondary" id="modalCancel">Cancel</button>
-        <button class="btn-main" id="modalConfirm">Confirm</button>
+        <button class="btn-secondary" type="button" id="modalCancel">Cancel</button>
+        <button class="btn-main" type="button" id="modalConfirm">Confirm</button>
       </div>
     </div>
   </div>
@@ -292,7 +295,7 @@
   </div>
 
   <section class="login-shell" id="loginShell">
-    <button class="theme-toggle login-theme-toggle" title="Toggle Theme">
+    <button type="button" class="theme-toggle login-theme-toggle" title="Toggle Theme">
       <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
     </button>
@@ -344,7 +347,7 @@
             <span style="margin:0 8px; opacity:0.3;">|</span> 
             <span id="syncStatus" style="color:var(--text);">Waiting</span>
         </div>
-        <button class="theme-toggle" id="themeToggleBtn" title="Toggle Theme">
+        <button type="button" class="theme-toggle" id="themeToggleBtn" title="Toggle Theme">
           <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
@@ -462,8 +465,20 @@
     let unsubscribeOwned = null;
     let unsubscribeShared = null;
     
-    // MEMORY CACHE FOR INVITE LINK
-    let lastInvitedEmail = '';
+    let lastInvitedEmail = ''; // CACHE FOR INVITE LINK GENERATION
+
+    // --- Theme Logic & Event Delegation ---
+    if (localStorage.getItem(THEME_KEY) === 'light') document.body.classList.add('light-mode');
+    
+    // Delegation completely bypasses load-order bugs for the theme buttons
+    document.addEventListener('click', (e) => {
+        const toggleBtn = e.target.closest('.theme-toggle');
+        if (toggleBtn) {
+            e.preventDefault();
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem(THEME_KEY, document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        }
+    });
 
     // --- Helper Functions ---
     function bindEvent(id, eventType, callback) {
@@ -720,7 +735,7 @@
         return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); 
     }
 
-    // 100% PURE DOM RENDERING (Guaranteed Action Buttons)
+    // 100% PURE DOM RENDERING (Guarantees Action Buttons)
     function renderTable() {
       const cBody = document.getElementById('clientsBody');
       const searchBx = document.getElementById('searchBox');
@@ -794,7 +809,7 @@
                 
                 const eyeBtn = document.createElement('button');
                 eyeBtn.className = 'btn-icon-micro action-eyekey';
-                eyeBtn.title = 'Show key';
+                eyeBtn.title = 'Toggle Key';
                 eyeBtn.innerHTML = ICONS.eye;
                 
                 const copyPassBtn = document.createElement('button');
@@ -1117,6 +1132,8 @@
 
     // --- Authentication ---
     async function signInWithGoogle() {
+      const eBox = document.getElementById('authEmail'); const pBox = document.getElementById('authPassword');
+      if(eBox) eBox.value = ''; if(pBox) pBox.value = '';
       setLoginStatus('Opening Google sign-in...');
       try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e) { setLoginStatus(e.message, 'error'); }
     }
@@ -1149,7 +1166,212 @@
       window.location.reload(); 
     }
     
-    // --- Initializer ---
+    // --- Core Initializer ---
+    // All UI bindings are applied synchronously so no buttons miss their click events
+    bindEvent('openAddClientModalBtn', 'click', () => openClientModal(false));
+    bindEvent('closeClientModalBtn', 'click', closeClientModal);
+    bindEvent('cancelClientBtn', 'click', closeClientModal);
+    bindEvent('shareFolderBtn', 'click', openShareModal);
+    bindEvent('closeShareModalBtn', 'click', closeShareModal);
+    bindEvent('searchBox', 'input', renderTable);
+    bindEvent('clearBtn', 'click', resetForm);
+    bindEvent('moveLeftBtn', 'click', () => moveFolder(-1));
+    bindEvent('moveRightBtn', 'click', () => moveFolder(1));
+    bindEvent('addFolderBtn', 'click', addFolder);
+    bindEvent('renameFolderBtn', 'click', renameFolder);
+    bindEvent('deleteFolderBtn', 'click', deleteFolder);
+    bindEvent('saveClientBtn', 'click', saveClientHandler);
+    bindEvent('logoutBtn', 'click', logout);
+    bindEvent('googleLoginBtn', 'click', signInWithGoogle);
+    bindEvent('emailLoginBtn', 'click', signInWithEmail);
+    bindEvent('emailSignupBtn', 'click', createAccount);
+    bindEvent('forgotPassBtn', 'click', async (e) => { e.preventDefault(); resetPassword(); });
+
+    bindEvent('inviteUserBtn', 'click', async () => {
+        const cf = currentFolder();
+        if(!cf) return;
+        const email = document.getElementById('val_em_share').value.trim().toLowerCase();
+        const role = document.getElementById('shareRoleInput').value;
+        if(!email) { showToast('Enter an email address', true); return; }
+        
+        let newMembers = {...(cf.members || {})};
+        newMembers[email] = role;
+        let newShared = [...(cf.sharedWith || [])];
+        if(!newShared.includes(email)) newShared.push(email);
+
+        const ref = doc(db, 'folders', cf.id);
+        await updateDoc(ref, { members: newMembers, sharedWith: newShared });
+        
+        cf.members = newMembers; cf.sharedWith = newShared;
+        
+        lastInvitedEmail = email; // Cache the email for the clipboard before we delete it!
+        document.getElementById('val_em_share').value = '';
+        
+        renderShareTable();
+        showToast('User granted access!');
+    });
+
+    bindEvent('copyInviteLinkBtn', 'click', (e) => {
+        e.preventDefault();
+        const cf = currentFolder();
+        if(!cf) return;
+        
+        // Grab what's typed in the box, or fall back to the last successfully invited email
+        const boxEmail = document.getElementById('val_em_share').value.trim().toLowerCase();
+        const targetEmail = boxEmail || lastInvitedEmail;
+        
+        const emailPrefix = targetEmail ? `Please log in with your email id: ${targetEmail}\n\n` : ``;
+        const msg = `${emailPrefix}You have been invited to access the "${cf.name}" folder on the TechBugs RustDesk Directory. Log in to view the endpoints: ${window.location.href}`;
+        copyToClipboard(msg, 'Invite Link');
+    });
+
+    bindEvent('keepSignedIn', 'change', async (e) => {
+        if(auth) { try { await setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence); } catch (error) { console.error(error); } }
+    });
+
+    bindEvent('toggleAuthPass', 'click', () => {
+        const input = document.getElementById('authPassword');
+        const btn = document.getElementById('toggleAuthPass');
+        if (input.type === 'password') { input.type = 'text'; btn.innerHTML = ICONS.eyeOff; } 
+        else { input.type = 'password'; btn.innerHTML = ICONS.eye; }
+    });
+
+    bindEvent('toggleClientPass', 'click', () => {
+        const input = document.getElementById('val_s');
+        const btn = document.getElementById('toggleClientPass');
+        if (input.classList.contains('mask-pw')) {
+            input.classList.remove('mask-pw');
+            btn.innerHTML = ICONS.eyeOff;
+        } else { 
+            input.classList.add('mask-pw');
+            btn.innerHTML = ICONS.eye; 
+        }
+    });
+    
+    // Auth password enter listener
+    const authPwBox = document.getElementById('authPassword');
+    if(authPwBox) {
+        authPwBox.addEventListener('keydown', async (event) => { 
+            if (event.key === 'Enter') { 
+                event.preventDefault(); 
+                signInWithEmail();
+            } 
+        });
+    }
+
+    // Modal Enter keys
+    ['val_n', 'val_i', 'val_s', 'val_t'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!document.getElementById('saveClientBtn').disabled) {
+                        document.getElementById('saveClientBtn').click();
+                    }
+                }
+            });
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') {
+            closeClientModal();
+            closeShareModal();
+            const mo = document.getElementById('modalOverlay');
+            if(mo) mo.style.display = 'none';
+        }
+        if(e.key === 'Enter') {
+            const mo = document.getElementById('modalOverlay');
+            if(mo && mo.style.display === 'flex') {
+                e.preventDefault();
+                const confirmBtn = document.getElementById('modalConfirm');
+                if(confirmBtn) confirmBtn.click();
+            }
+        }
+    });
+
+    const shareRoleWrap = document.getElementById('shareRoleWrap');
+    const shareRoleTrigger = document.getElementById('shareRoleTrigger');
+    const shareRoleInput = document.getElementById('shareRoleInput');
+    const shareRoleLabel = document.getElementById('shareRoleLabel');
+
+    if(shareRoleWrap && shareRoleTrigger) {
+        shareRoleTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            shareRoleWrap.classList.toggle('open');
+        });
+        document.querySelectorAll('.custom-option').forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                e.stopPropagation();
+                shareRoleInput.value = opt.getAttribute('data-value');
+                shareRoleLabel.textContent = opt.textContent;
+                shareRoleWrap.classList.remove('open');
+            });
+        });
+        document.addEventListener('click', () => shareRoleWrap.classList.remove('open'));
+    }
+
+    const cBody = document.getElementById('clientsBody');
+    if (cBody) {
+        cBody.addEventListener('click', async (e) => {
+            const btn = e.target.closest('button');
+            if(!btn) return;
+            
+            const idxRaw = btn.getAttribute('data-idx');
+            const folder = currentFolder();
+            if (!folder) return;
+            
+            if (btn.classList.contains('action-connect')) {
+                const cid = btn.getAttribute('data-id');
+                if (cid) window.location.href = `rustdesk://${encodeURIComponent(cid.replace(/\s+/g, ''))}`;
+            }
+            else if (btn.classList.contains('action-copyid')) {
+                copyToClipboard(btn.getAttribute('data-id'), 'ID');
+            }
+            else if (btn.classList.contains('action-copykey')) {
+                copyToClipboard(btn.getAttribute('data-key'), 'Auth Key');
+            }
+            else if (btn.classList.contains('action-eyekey')) {
+                const hiddenSpan = btn.parentElement.querySelector('.hidden-pass');
+                const realSpan = btn.parentElement.querySelector('.real-pass');
+                if (hiddenSpan.style.display === 'none') {
+                    hiddenSpan.style.display = 'inline';
+                    realSpan.style.display = 'none';
+                    btn.innerHTML = ICONS.eye;
+                } else {
+                    hiddenSpan.style.display = 'none';
+                    realSpan.style.display = 'inline';
+                    btn.innerHTML = ICONS.eyeOff;
+                }
+            }
+            else if (idxRaw !== null) {
+                const idx = parseInt(idxRaw);
+                if (btn.classList.contains('action-edit')) {
+                    loadIntoForm(idx);
+                }
+                else if (btn.classList.contains('action-up')) {
+                    [folder.clients[idx], folder.clients[idx - 1]] = [folder.clients[idx - 1], folder.clients[idx]];
+                    renderTable(); 
+                    try { await persistFolder(folder); } catch(err){}
+                }
+                else if (btn.classList.contains('action-down')) {
+                    [folder.clients[idx], folder.clients[idx + 1]] = [folder.clients[idx + 1], folder.clients[idx]];
+                    renderTable(); 
+                    try { await persistFolder(folder); } catch(err){}
+                }
+                else if (btn.classList.contains('action-del')) {
+                    const confirmDel = await openModal('Delete Client', `Are you sure you want to delete this client?`);
+                    if (confirmDel) {
+                        folder.clients.splice(idx, 1);
+                        renderTable(); 
+                        try { await persistFolder(folder); showToast('Client deleted'); } catch (err) {}
+                    }
+                }
+            }
+        });
+    }
+
     async function initializeFirebase() {
       showLogin();
 
@@ -1176,7 +1398,6 @@
             setSyncStatus('Loading...');
             
             try {
-                // Auto-create default folder instantly if empty
                 const qOwned = query(collection(db, 'folders'), where('owner', '==', user.uid));
                 const snap = await getDocs(qOwned);
                 const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', user.email));
@@ -1211,195 +1432,8 @@
           setLoginStatus("Firebase Error: " + err.message, 'error');
       }
     }
-    
-    // Explicit binding assignment ensures functions exist before attaching.
-    window.addEventListener('DOMContentLoaded', () => {
-        bindEvent('openAddClientModalBtn', 'click', () => openClientModal(false));
-        bindEvent('closeClientModalBtn', 'click', closeClientModal);
-        bindEvent('cancelClientBtn', 'click', closeClientModal);
-        bindEvent('shareFolderBtn', 'click', openShareModal);
-        bindEvent('closeShareModalBtn', 'click', closeShareModal);
-        bindEvent('searchBox', 'input', renderTable);
-        bindEvent('clearBtn', 'click', resetForm);
-        bindEvent('moveLeftBtn', 'click', () => moveFolder(-1));
-        bindEvent('moveRightBtn', 'click', () => moveFolder(1));
-        bindEvent('addFolderBtn', 'click', addFolder);
-        bindEvent('renameFolderBtn', 'click', renameFolder);
-        bindEvent('deleteFolderBtn', 'click', deleteFolder);
-        bindEvent('saveClientBtn', 'click', saveClientHandler);
-        bindEvent('logoutBtn', 'click', logout);
-        bindEvent('googleLoginBtn', 'click', async () => { try { await signInWithGoogle(); } catch (error) { setLoginStatus(error.message, 'error'); } });
-        bindEvent('emailLoginBtn', 'click', async () => { try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); } });
-        bindEvent('emailSignupBtn', 'click', async () => { try { await createAccount(); } catch (error) { setLoginStatus(error.message, 'error'); } });
-        bindEvent('forgotPassBtn', 'click', async (e) => { e.preventDefault(); try { await resetPassword(); } catch (error) { setLoginStatus(error.message, 'error'); } });
-        
-        const authPwBox = document.getElementById('authPassword');
-        if(authPwBox) {
-            authPwBox.addEventListener('keydown', async (event) => { 
-                if (event.key === 'Enter') { 
-                    event.preventDefault(); 
-                    try { await signInWithEmail(); } catch (error) { setLoginStatus(error.message, 'error'); } 
-                } 
-            });
-        }
 
-        bindEvent('keepSignedIn', 'change', async (e) => {
-          if(auth) { try { await setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence); } catch (error) { console.error(error); } }
-        });
-
-        bindEvent('toggleAuthPass', 'click', () => {
-          const input = document.getElementById('authPassword');
-          const btn = document.getElementById('toggleAuthPass');
-          if (input.type === 'password') { input.type = 'text'; btn.innerHTML = ICONS.eyeOff; } 
-          else { input.type = 'password'; btn.innerHTML = ICONS.eye; }
-        });
-
-        bindEvent('toggleClientPass', 'click', () => {
-          const input = document.getElementById('val_s');
-          const btn = document.getElementById('toggleClientPass');
-          if (input.classList.contains('mask-pw')) {
-              input.classList.remove('mask-pw');
-              btn.innerHTML = ICONS.eyeOff;
-          } else { 
-              input.classList.add('mask-pw');
-              btn.innerHTML = ICONS.eye; 
-          }
-        });
-        
-        ['val_n', 'val_i', 'val_s', 'val_t'].forEach(id => {
-            const el = document.getElementById(id);
-            if(el) {
-                el.addEventListener('keydown', (e) => {
-                    if(e.key === 'Enter') {
-                        e.preventDefault();
-                        if (!document.getElementById('saveClientBtn').disabled) {
-                            document.getElementById('saveClientBtn').click();
-                        }
-                    }
-                });
-            }
-        });
-        
-        const shareRoleWrap = document.getElementById('shareRoleWrap');
-        const shareRoleTrigger = document.getElementById('shareRoleTrigger');
-        const shareRoleInput = document.getElementById('shareRoleInput');
-        const shareRoleLabel = document.getElementById('shareRoleLabel');
-
-        if(shareRoleWrap && shareRoleTrigger) {
-            shareRoleTrigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                shareRoleWrap.classList.toggle('open');
-            });
-            document.querySelectorAll('.custom-option').forEach(opt => {
-                opt.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    shareRoleInput.value = opt.getAttribute('data-value');
-                    shareRoleLabel.textContent = opt.textContent;
-                    shareRoleWrap.classList.remove('open');
-                });
-            });
-            document.addEventListener('click', () => shareRoleWrap.classList.remove('open'));
-        }
-        
-        bindEvent('inviteUserBtn', 'click', async () => {
-          const cf = currentFolder();
-          if(!cf) return;
-          const email = document.getElementById('val_em_share').value.trim().toLowerCase();
-          const role = document.getElementById('shareRoleInput').value;
-          if(!email) { showToast('Enter an email address', true); return; }
-          
-          let newMembers = {...(cf.members || {})};
-          newMembers[email] = role;
-          let newShared = [...(cf.sharedWith || [])];
-          if(!newShared.includes(email)) newShared.push(email);
-
-          const ref = doc(db, 'folders', cf.id);
-          await updateDoc(ref, { members: newMembers, sharedWith: newShared });
-          
-          cf.members = newMembers; cf.sharedWith = newShared;
-          
-          lastInvitedEmail = email; // Cache the email for the clipboard before we delete it from the box!
-          document.getElementById('val_em_share').value = '';
-          
-          renderShareTable();
-          showToast('User granted access!');
-        });
-
-        bindEvent('copyInviteLinkBtn', 'click', (e) => {
-            e.preventDefault();
-            const cf = currentFolder();
-            if(!cf) return;
-            
-            // Check if they just invited someone, otherwise pull whatever is currently typed in the box
-            const boxEmail = document.getElementById('val_em_share').value.trim().toLowerCase();
-            const targetEmail = boxEmail || lastInvitedEmail || "[Their Email]";
-            
-            const msg = `Please log in with your email id: ${targetEmail}\n\nYou have been invited to access the "${cf.name}" folder on the TechBugs RustDesk Directory. Log in to view the endpoints: ${window.location.href}`;
-            copyToClipboard(msg, 'Invite Link');
-        });
-        
-        const cBody = document.getElementById('clientsBody');
-        if (cBody) {
-            cBody.addEventListener('click', async (e) => {
-                const btn = e.target.closest('button');
-                if(!btn) return;
-                
-                const idxRaw = btn.getAttribute('data-idx');
-                const folder = currentFolder();
-                if (!folder) return;
-                
-                if (btn.classList.contains('action-connect')) {
-                    const cid = btn.getAttribute('data-id');
-                    if (cid) window.location.href = `rustdesk://${encodeURIComponent(cid.replace(/\s+/g, ''))}`;
-                }
-                else if (btn.classList.contains('action-copyid')) {
-                    copyToClipboard(btn.getAttribute('data-id'), 'ID');
-                }
-                else if (btn.classList.contains('action-copykey')) {
-                    copyToClipboard(btn.getAttribute('data-key'), 'Auth Key');
-                }
-                else if (btn.classList.contains('action-eyekey')) {
-                    const hiddenSpan = btn.parentElement.querySelector('.hidden-pass');
-                    const realSpan = btn.parentElement.querySelector('.real-pass');
-                    if (hiddenSpan.style.display === 'none') {
-                        hiddenSpan.style.display = 'inline';
-                        realSpan.style.display = 'none';
-                        btn.innerHTML = ICONS.eye;
-                    } else {
-                        hiddenSpan.style.display = 'none';
-                        realSpan.style.display = 'inline';
-                        btn.innerHTML = ICONS.eyeOff;
-                    }
-                }
-                else if (idxRaw !== null) {
-                    const idx = parseInt(idxRaw);
-                    if (btn.classList.contains('action-edit')) {
-                        loadIntoForm(idx);
-                    }
-                    else if (btn.classList.contains('action-up')) {
-                        [folder.clients[idx], folder.clients[idx - 1]] = [folder.clients[idx - 1], folder.clients[idx]];
-                        renderTable(); 
-                        try { await persistFolder(folder); } catch(err){}
-                    }
-                    else if (btn.classList.contains('action-down')) {
-                        [folder.clients[idx], folder.clients[idx + 1]] = [folder.clients[idx + 1], folder.clients[idx]];
-                        renderTable(); 
-                        try { await persistFolder(folder); } catch(err){}
-                    }
-                    else if (btn.classList.contains('action-del')) {
-                        const confirmDel = await openModal('Delete Client', `Are you sure you want to delete this client?`);
-                        if (confirmDel) {
-                            folder.clients.splice(idx, 1);
-                            renderTable(); 
-                            try { await persistFolder(folder); showToast('Client deleted'); } catch (err) {}
-                        }
-                    }
-                }
-            });
-        }
-        
-        initializeFirebase();
-    });
+    initializeFirebase();
   </script>
 </body>
 </html>
