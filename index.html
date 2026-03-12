@@ -382,7 +382,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
     import { getAuth, GoogleAuthProvider, browserLocalPersistence, browserSessionPersistence, createUserWithEmailAndPassword, onAuthStateChanged, setPersistence, signInWithEmailAndPassword, signInWithPopup, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-    import { doc, getDoc, getDocs, collection, query, where, addDoc, updateDoc, arrayUnion, arrayRemove, deleteField, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+    import { getFirestore, doc, getDoc, getDocs, collection, query, where, addDoc, updateDoc, arrayUnion, arrayRemove, deleteField, onSnapshot, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
     // --- PWA Registration ---
     if ('serviceWorker' in navigator) {
@@ -657,7 +657,6 @@
         currentWorkspaceId = wsId;
         localStorage.setItem(`rustdesk_last_ws_${user.uid}`, wsId);
         
-        // Attempt to load offline cache quickly
         const cacheKey = getStorageKey();
         if(cacheKey) {
             try { 
@@ -685,7 +684,6 @@
         
         const data = snapshot.data();
         
-        // Boot user if admin removed them while they were logged in
         if(!data.members || !data.members[user.email]) {
              showToast('Your access to this workspace was revoked.', true);
              loadWorkspaces(user); 
