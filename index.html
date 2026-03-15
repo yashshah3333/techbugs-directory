@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RustDesk Address Book</title>
+  <title>TechBugs Endpoint Manager</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -60,6 +60,7 @@
     }
     input::placeholder { color: var(--text-muted); opacity: 0.8; }
     input:focus, select:focus { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
+    input.invalid { border-color: var(--danger); }
 
     .custom-select-wrap { position: relative; width: 100%; user-select: none; }
     .custom-select-trigger { width: 100%; background: rgba(128, 128, 128, 0.08); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; color: var(--text); font-size: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
@@ -103,7 +104,6 @@
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: none; align-items: flex-start; justify-content: center; z-index: 2000; padding: 10vh 16px; overflow-y: auto; animation: fadeInModal 0.2s ease-out; }
     @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
     
-    /* Confirmation modal aggressively layered above everything else */
     #modalOverlay { z-index: 9999 !important; }
     
     .modal-card { width: 100%; max-width: 400px; padding: 28px; border-radius: var(--radius-md); margin: 0 auto; position: relative; }
@@ -216,7 +216,7 @@
     <div class="modal-card wide-modal-card glass-panel" id="shareModalBox">
       <div class="card-header" style="margin-bottom: 20px;">
         <h3 class="card-title">Share Folder</h3>
-        <button type="button" class="icon-btn-absolute" id="closeShareModalBtn" style="position:relative; right:0; top:0; transform:none; padding:8px;">
+        <button type="button" class="icon-btn-absolute" id="closeShareModalBtn" style="position:relative; right:0; top:0; transform:none; padding:8px;" aria-label="Close share modal">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -258,7 +258,7 @@
     <div class="modal-card wide-modal-card glass-panel" id="clientModalBox">
       <div class="card-header" style="margin-bottom: 20px;">
         <h3 class="card-title" id="clientModalTitle">Add Client</h3>
-        <button type="button" class="icon-btn-absolute" id="closeClientModalBtn" style="position:relative; right:0; top:0; transform:none; padding:8px;">
+        <button type="button" class="icon-btn-absolute" id="closeClientModalBtn" style="position:relative; right:0; top:0; transform:none; padding:8px;" aria-label="Close client modal">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
@@ -281,6 +281,7 @@
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
+            <small style="color:var(--text-muted); font-size:11px; margin-top:4px;">Warning: Keys are stored unencrypted in the database.</small>
           </div>
           <div class="field">
             <label>Tags</label>
@@ -307,14 +308,14 @@
   </div>
 
   <section class="login-shell" id="loginShell">
-    <button type="button" class="theme-toggle login-theme-toggle" title="Toggle Theme">
+    <button type="button" class="theme-toggle login-theme-toggle" title="Toggle Theme" aria-label="Toggle theme">
       <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
     </button>
     <div class="login-card glass-panel" id="authBoxCore">
       <div class="login-header">
-        <h2>RustDesk Address Book</h2>
-        <p>Sign in to access your synchronized endpoints.</p>
+        <h2>TechBugs Endpoint Manager</h2>
+        <p>Sign in to manage your remote computers.</p>
       </div>
       
       <div class="auth-stack">
@@ -351,7 +352,7 @@
   <main class="app-shell" id="appShell">
     <div class="app-header">
       <div class="title-row">
-        <h1>RustDesk Address Book</h1>
+        <h1>TechBugs Endpoint Manager</h1>
       </div>
       <div class="header-actions">
         <div class="pill">
@@ -359,7 +360,7 @@
             <span style="margin:0 8px; opacity:0.3;">|</span> 
             <span id="syncStatus" style="color:var(--text);">Waiting</span>
         </div>
-        <button type="button" class="theme-toggle" title="Toggle Theme">
+        <button type="button" class="theme-toggle" title="Toggle Theme" aria-label="Toggle theme">
           <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
@@ -403,14 +404,14 @@
     <section class="card glass-panel">
       <div class="card-header" style="margin-bottom:0; flex-wrap: wrap; gap: 16px;">
         <div class="card-title" style="display:flex; align-items:center; gap:12px;">
-            <span id="folderLabel">Endpoints</span>
+            <span id="folderLabel">Remote Computers</span>
             <span id="roleBadge" class="role-badge" style="display:none;"></span>
         </div>
         
         <div style="display:flex; gap: 12px; align-items:center; flex:1; justify-content: flex-end;">
             <div class="search-wrap" style="flex:1; max-width: 320px;">
               <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              <input type="text" id="searchBox" placeholder="Search clients or IDs..." autocomplete="off">
+              <input type="text" id="searchBox" placeholder="Search clients, IDs, or tags..." autocomplete="off">
             </div>
             <button class="btn-main" type="button" id="openAddClientModalBtn">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -434,12 +435,12 @@
       </div>
     </section>
 
-    <div class="footer">App developed by TechBugs IT Solutions (Yash Shah +91 7028533162) | Build Version 1.0</div>
+    <div class="footer">Build Version 1.0 | Support & Feedback: <a href="mailto:techbugs.solapur@gmail.com" style="color: var(--text); text-decoration:none;">Email</a> | <a href="https://wa.me/917028533162?text=Hi%20TechBugs,%20I%20need%20support%20with%20Endpoint%20Manager" target="_blank" style="color: var(--text); text-decoration: none;">Chat on WhatsApp</a></div>
   </main>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, browserLocalPersistence, browserSessionPersistence, createUserWithEmailAndPassword, onAuthStateChanged, setPersistence, signInWithEmailAndPassword, signInWithPopup, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+    import { getAuth, GoogleAuthProvider, browserLocalPersistence, browserSessionPersistence, createUserWithEmailAndPassword, onAuthStateChanged, setPersistence, signInWithEmailAndPassword, signInWithPopup, signOut, sendPasswordResetEmail, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
     import { getFirestore, doc, collection, query, where, addDoc, updateDoc, deleteDoc, getDocs, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
     const THEME_KEY = 'techbugs_theme';
@@ -477,6 +478,7 @@
     let unsubscribeOwned = null;
     let unsubscribeShared = null;
     let lastInvitedEmail = ''; 
+    let autoHideTimeouts = new Map();
 
     // --- Core Master Delegate Click Handler ---
     document.addEventListener('click', async (e) => {
@@ -518,7 +520,6 @@
             return;
         }
 
-        // --- NEW: Universal Password Toggle Logic ---
         const pwToggle = e.target.closest('.pw-toggle-btn');
         if (pwToggle) {
             e.preventDefault();
@@ -526,7 +527,6 @@
             const input = document.getElementById(targetId);
             if (!input) return;
             
-            // Capture cursor position so it doesn't jump
             const start = input.selectionStart;
             const end = input.selectionEnd;
             
@@ -538,14 +538,12 @@
                 pwToggle.innerHTML = ICONS.eye;
             }
             
-            // Restore cursor position seamlessly
             try { 
                 input.focus();
                 input.setSelectionRange(start, end); 
             } catch(err) {}
             return;
         }
-        // ------------------------------------------
 
         document.querySelectorAll('.custom-select-wrap.open').forEach(w => w.classList.remove('open'));
         
@@ -568,14 +566,24 @@
             else if (tableBtn.classList.contains('action-eyekey')) {
                 const hiddenSpan = tableBtn.parentElement.querySelector('.hidden-pass');
                 const realSpan = tableBtn.parentElement.querySelector('.real-pass');
+                const btnId = tableBtn.getAttribute('data-key');
+                
                 if (hiddenSpan.style.display === 'none') {
                     hiddenSpan.style.display = 'inline';
                     realSpan.style.display = 'none';
                     tableBtn.innerHTML = ICONS.eye;
+                    if(autoHideTimeouts.has(btnId)) clearTimeout(autoHideTimeouts.get(btnId));
                 } else {
                     hiddenSpan.style.display = 'none';
                     realSpan.style.display = 'inline';
                     tableBtn.innerHTML = ICONS.eyeOff;
+                    
+                    if(autoHideTimeouts.has(btnId)) clearTimeout(autoHideTimeouts.get(btnId));
+                    autoHideTimeouts.set(btnId, setTimeout(() => {
+                        hiddenSpan.style.display = 'inline';
+                        realSpan.style.display = 'none';
+                        tableBtn.innerHTML = ICONS.eye;
+                    }, 15000));
                 }
             }
             else if (idxRaw !== null) {
@@ -901,13 +909,20 @@
       if (!folder || !folder.clients) return;
 
       const queryTxt = searchBx.value.trim().toLowerCase();
+      
       const filtered = queryTxt ? folder.clients.filter(c => 
           (c.name || '').toLowerCase().includes(queryTxt) || 
-          (c.id || '').toLowerCase().includes(queryTxt)
+          (c.id || '').toLowerCase().includes(queryTxt) ||
+          (c.notes || '').toLowerCase().includes(queryTxt)
       ) : folder.clients;
       
       const role = getRole();
       const isViewer = (role === 'viewer');
+
+      if (filtered.length === 0) {
+          cBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted)">No endpoints yet. Click "Add Client" to get started.</td></tr>`;
+          return;
+      }
 
       filtered.forEach((client) => {
         try {
@@ -961,6 +976,7 @@
                 
                 const eyeBtn = document.createElement('button');
                 eyeBtn.className = 'btn-icon-micro action-eyekey';
+                eyeBtn.setAttribute('data-key', client.id); 
                 eyeBtn.title = 'Toggle Key';
                 eyeBtn.innerHTML = ICONS.eye;
                 
@@ -1105,8 +1121,14 @@
 
     // --- Folder / Client Actions ---
     function resetForm() {
-      document.getElementById('val_n').value = ''; 
-      document.getElementById('val_i').value = ''; 
+      const nameInput = document.getElementById('val_n');
+      const idInput = document.getElementById('val_i');
+      
+      nameInput.value = ''; 
+      nameInput.classList.remove('invalid');
+      idInput.value = ''; 
+      idInput.classList.remove('invalid');
+      
       document.getElementById('val_s').value = ''; 
       document.getElementById('val_t').value = '';
       const passInput = document.getElementById('val_s');
@@ -1128,8 +1150,14 @@
       const client = currentFolder()?.clients[index];
       if (!client) return;
       
-      document.getElementById('val_n').value = client.name || ''; 
-      document.getElementById('val_i').value = client.id || ''; 
+      const nameInput = document.getElementById('val_n');
+      const idInput = document.getElementById('val_i');
+      
+      nameInput.value = client.name || ''; 
+      nameInput.classList.remove('invalid');
+      idInput.value = client.id || ''; 
+      idInput.classList.remove('invalid');
+      
       document.getElementById('val_s').value = client.password || ''; 
       document.getElementById('val_t').value = client.notes || '';
       const passInput = document.getElementById('val_s');
@@ -1262,21 +1290,27 @@
       const folder = currentFolder();
       if (!folder) { showToast('Create a folder first.', true); return; }
 
-      const name = document.getElementById('val_n').value.trim();
-      const id = document.getElementById('val_i').value.trim(); 
+      const nameInput = document.getElementById('val_n');
+      const idInput = document.getElementById('val_i');
+      const name = nameInput.value.trim();
+      const id = idInput.value.trim(); 
       const password = document.getElementById('val_s').value.trim();
       const notes = document.getElementById('val_t').value.trim();
 
-      if (!name || !id) { showToast('Client Name and ID are required.', true); return; }
+      nameInput.classList.remove('invalid');
+      idInput.classList.remove('invalid');
+
+      if (!name || !id) { 
+        if(!name) nameInput.classList.add('invalid');
+        if(!id) idInput.classList.add('invalid');
+        showToast('Client Name and ID are required.', true); 
+        return; 
+      }
 
       const idClean = id.replace(/\s+/g, '');
       if (!/^[0-9]+$/.test(idClean)) {
+        idInput.classList.add('invalid');
         showToast('Remote ID should contain only numbers and spaces.', true);
-        return;
-      }
-
-      if (password && password.length < 4) {
-        showToast('Auth Key should be at least 4 characters long.', true);
         return;
       }
 
@@ -1310,13 +1344,13 @@
         }
       }
 
-      document.getElementById('val_n').blur();
+      nameInput.blur();
       document.getElementById('val_s').blur();
       document.getElementById('clientModalOverlay').style.display = 'none';
       
       setTimeout(() => {
-          document.getElementById('val_n').value = '';
-          document.getElementById('val_i').value = '';
+          nameInput.value = '';
+          idInput.value = '';
           document.getElementById('val_s').value = '';
           document.getElementById('val_t').value = '';
       }, 200);
@@ -1382,7 +1416,9 @@
       if (btnLogin) btnLogin.disabled = true;
       if (btnSignup) btnSignup.disabled = true;
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await sendEmailVerification(userCredential.user);
+        setLoginStatus('Account created! Check your email to verify.', 'success');
       } catch(e) {
         setLoginStatus(getFriendlyAuthError(e), 'error');
       } finally {
@@ -1485,9 +1521,13 @@
             const targetEmail = boxEmail || lastInvitedEmail;
             
             const emailPrefix = targetEmail ? `Please log in with your email id: ${targetEmail}\n\n` : ``;
-            const msg = `${emailPrefix}You have been invited to access the "${cf.name}" folder on the TechBugs RustDesk Directory. Log in to view the endpoints: ${window.location.href}`;
+            const msg = `${emailPrefix}You have been invited to access the "${cf.name}" folder on the TechBugs Endpoint Manager. Log in to view the endpoints: ${window.location.href}`;
             copyToClipboard(msg, 'Invite Link');
         });
+
+        // Offline State Monitoring
+        window.addEventListener('offline', () => setSyncStatus('Offline'));
+        window.addEventListener('online', () => setSyncStatus('Synced'));
 
         initializeFirebase();
     });
@@ -1518,7 +1558,6 @@
             setSyncStatus('Loading...');
             
             try {
-                // Auto-create default folder instantly if empty
                 const qOwned = query(collection(db, 'folders'), where('owner', '==', user.uid));
                 const snap = await getDocs(qOwned);
                 const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', user.email));
