@@ -1,1187 +1,1597 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TechBugs Endpoint Manager</title>
-  <meta name="description" content="TechBugs Endpoint Manager helps you manage and connect to your remote computers from a central dashboard.">
-  <meta name="robots" content="noindex,nofollow">
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      color-scheme: dark;
-      --bg: #050713;
-      --bg-elevated: #080b1e;
-      --bg-elevated-soft: #0e1128;
-      --border-subtle: rgba(255,255,255,0.06);
-      --accent: #6366f1;
-      --accent-soft: rgba(99,102,241,0.14);
-      --accent-hover: #818cf8;
-      --danger: #f97373;
-      --danger-soft: rgba(248,113,113,0.1);
-      --text-main: #f9fafb;
-      --text-muted: #9ca3af;
-      --text-soft: #6b7280;
-      --radius-lg: 18px;
-      --radius-md: 12px;
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --bg: #09090b; 
+      --surface: rgba(24, 24, 27, 0.65); 
+      --surface-hover: rgba(39, 39, 42, 0.8);
+      --border: rgba(255, 255, 255, 0.1); 
+      --border-focus: rgba(255, 255, 255, 0.3);
+      --primary-bg: #ffffff; 
+      --primary-text: #000000;
+      --primary-hover: #e4e4e7;
+      --danger: #ef4444;
+      --text: #f4f4f5; 
+      --text-muted: #a1a1aa; 
+      --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.5);
       --radius-sm: 8px;
-      --shadow-soft: 0 22px 60px rgba(15,23,42,0.65);
-      --shadow-subtle: 0 14px 40px rgba(15,23,42,0.55);
-      --focus-ring: 0 0 0 1px rgba(129,140,248,0.9), 0 0 0 6px rgba(79,70,229,0.35);
-      --transition-fast: 150ms ease-out;
-      --transition-med: 200ms ease-out;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
     }
 
-    * {
-      box-sizing: border-box;
+    body.light-mode {
+      --bg: #f4f5f7; 
+      --surface: rgba(255, 255, 255, 0.85); 
+      --surface-hover: rgba(255, 255, 255, 1);
+      --border: rgba(0, 0, 0, 0.06); 
+      --border-focus: rgba(0, 0, 0, 0.2);
+      --primary-bg: #2a2a2a; 
+      --primary-text: #ffffff;
+      --primary-hover: #000000;
+      --text: #242424; 
+      --text-muted: #737373; 
+      --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.04);
     }
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #020617 0, #020617 40%, #000 100%);
-      color: var(--text-main);
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      display: flex;
-      align-items: stretch;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    main {
-      flex: 1;
-      max-width: 1280px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin: 0 auto;
-    }
-
-    /* Header */
-
-    .app-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-radius: 999px;
-      padding: 12px 18px;
-      background: radial-gradient(circle at top left, rgba(37,99,235,0.55), transparent 55%),
-                  radial-gradient(circle at top right, rgba(168,85,247,0.55), transparent 55%),
-                  rgba(10,16,41,0.96);
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148,163,253,0.45);
-      position: relative;
-      overflow: hidden;
-      backdrop-filter: blur(18px);
-    }
-
-    .app-header-inner {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      gap: 12px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 14px;
-      background: radial-gradient(circle at 30% 20%, #bfdbfe 0, #60a5fa 22%, #1d4ed8 55%, #020617 100%);
-      box-shadow: 0 12px 32px rgba(37,99,235,0.8);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .brand-logo::after {
-      content: "";
-      position: absolute;
-      inset: 3px;
-      border-radius: 11px;
-      border: 1px solid rgba(191,219,254,0.9);
-      box-shadow: inset 0 0 0 1px rgba(15,23,42,0.9);
-    }
-
-    .brand-title-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .brand-name {
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-    }
-
-    .brand-pill {
-      font-size: 10px;
-      padding: 2px 7px;
-      border-radius: 999px;
-      background: rgba(15,23,42,0.85);
-      border: 1px solid rgba(191,219,254,0.55);
-      color: rgba(191,219,254,0.9);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-    }
-
-    .brand-subtitle {
-      font-size: 11px;
-      color: rgba(229,231,235,0.85);
-    }
-
-    .session-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 12px;
-    }
-
-    .session-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 9px;
-      border-radius: 999px;
-      background: rgba(15,23,42,0.88);
-      border: 1px solid rgba(148,163,253,0.65);
-      color: rgba(226,232,240,0.95);
-    }
-
-    .session-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 30% 30%, #fbbf24 0, #f97316 30%, #b91c1c 75%);
-      box-shadow: 0 0 10px rgba(248,113,113,0.7);
-    }
-
-    .session-label {
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-size: 9px;
-      color: rgba(226,232,240,0.9);
-    }
-
-    .session-meta-pill {
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(191,219,254,0.4);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      background: rgba(15,23,42,0.85);
-    }
-
-    .btn {
-      border-radius: 999px;
-      border: 1px solid transparent;
-      font-size: 12px;
-      padding: 6px 12px;
-      cursor: pointer;
-      transition: background var(--transition-fast), border-color var(--transition-fast), transform 120ms ease-out, box-shadow 120ms ease-out;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: transparent;
-      color: var(--text-main);
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      border-color: rgba(191,219,254,0.65);
-      box-shadow: 0 12px 30px rgba(79,70,229,0.75);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-0.5px);
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      box-shadow: 0 14px 38px rgba(79,70,229,0.85);
-    }
-
-    .btn-secondary {
-      background: rgba(15,23,42,0.9);
-      border-color: rgba(148,163,253,0.5);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(30,64,175,0.65);
-      transform: translateY(-0.3px);
-    }
-
-    .btn-text {
-      background: transparent;
-      border-color: transparent;
-      color: var(--text-soft);
-    }
-
-    .btn-link {
-      background: transparent;
-      border-color: transparent;
-      padding: 0;
-      color: #93c5fd;
-      font-size: 12px;
-    }
-
-    .btn-small {
-      padding: 4px 10px;
-      font-size: 11px;
-    }
-
-    /* Layout main */
-
-    .main-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.7fr);
-      gap: 16px;
-      height: calc(100vh - 96px);
-      max-height: 720px;
-    }
-
-    /* Auth panel */
-
-    .auth-panel {
-      position: relative;
-      border-radius: var(--radius-lg);
-      background:
-        radial-gradient(circle at 0% 0%, rgba(79,70,229,0.3), transparent 55%),
-        radial-gradient(circle at 120% 10%, rgba(168,85,247,0.35), transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(15,118,110,0.35), transparent 65%),
-        rgba(15,23,42,0.97);
-      padding: 18px 18px 20px;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148,163,253,0.75);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .auth-panel-inner {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      gap: 14px;
-    }
-
-    .auth-header {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .auth-title {
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-    }
-
-    .auth-subtitle {
-      font-size: 12px;
-      color: rgba(226,232,240,0.92);
-    }
-
-    .auth-form {
-      margin-top: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .form-field {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 12px;
-    }
-
-    .form-label {
-      font-size: 11px;
-      color: rgba(229,231,235,0.9);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .form-input {
-      border-radius: 10px;
-      border: 1px solid rgba(148,163,253,0.55);
-      padding: 7px 9px;
-      font-size: 12px;
-      background: rgba(15,23,42,0.98);
-      color: var(--text-main);
-      outline: none;
-      transition: box-shadow var(--transition-med), border-color var(--transition-med), background var(--transition-fast), transform 80ms ease-out;
-    }
-
-    .form-input:focus {
-      border-color: rgba(191,219,254,0.9);
-      box-shadow: var(--focus-ring);
-      background: #020617;
-      transform: translateY(-0.5px);
-    }
-
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      color: rgba(209,213,219,0.9);
-      margin: 4px 0;
-    }
-
-    .divider::before,
-    .divider::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(
-        to right,
-        transparent,
-        rgba(148,163,253,0.55),
-        transparent
-      );
-    }
-
-    .checkbox {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: rgba(226,232,240,0.9);
-    }
-
-    .form-footer {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .form-footer-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .auth-links {
-      display: flex;
-      gap: 10px;
-      font-size: 11px;
-      color: rgba(226,232,240,0.9);
-    }
-
-    /* Dashboard */
-
-    .dashboard {
-      position: relative;
-      border-radius: var(--radius-lg);
-      background:
-        radial-gradient(circle at 0% 0%, rgba(59,130,246,0.22), transparent 55%),
-        radial-gradient(circle at 100% 0%, rgba(139,92,246,0.25), transparent 60%),
-        radial-gradient(circle at 50% 120%, rgba(8,47,73,0.6), transparent 65%),
-        rgba(15,23,42,0.98);
-      padding: 16px 18px 18px;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148,163,253,0.7);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .dashboard-inner {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      height: 100%;
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-header-main {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .section-title {
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(229,231,235,0.95);
-    }
-
-    .section-subtitle {
-      font-size: 11px;
-      color: rgba(209,213,219,0.9);
-    }
-
-    .toolbar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .clients-wrapper {
-      border-radius: var(--radius-md);
-      background: radial-gradient(circle at 50% -40%, rgba(37,99,235,0.45), transparent 60%),
-                  rgba(8,14,34,0.97);
-      border: 1px solid rgba(148,163,253,0.75);
-      padding: 10px 10px 11px;
-      box-shadow: var(--shadow-subtle);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      flex: 1;
-      min-height: 0;
-    }
-
-    .clients-table-wrap {
-      border-radius: 12px;
-      border: 1px solid rgba(148,163,253,0.75);
-      background: rgba(3,7,18,0.98);
-      box-shadow: var(--shadow-subtle);
-      padding: 10px;
-      overflow: hidden;
-      position: relative;
-      flex: 1;
-      min-height: 0;
-    }
-
-    .clients-table-inner {
-      border-radius: 10px;
-      border: 1px solid rgba(31,41,55,0.9);
-      background: linear-gradient(to bottom, rgba(15,23,42,0.98), rgba(3,7,18,0.98));
-      overflow: auto;
-      max-height: 100%;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
-      min-width: 520px;
-    }
-
-    th,
-    td {
-      padding: 7px 10px;
-      text-align: left;
-      white-space: nowrap;
-    }
-
-    th {
-      font-weight: 500;
-      font-size: 11px;
-      color: rgba(209,213,219,0.95);
-      border-bottom: 1px solid rgba(30,64,175,0.9);
-      position: sticky;
-      top: 0;
-      backdrop-filter: blur(12px);
-      background: rgba(15,23,42,0.98);
-    }
-
-    td {
-      border-bottom: 1px solid rgba(31,41,55,0.85);
-      color: rgba(229,231,235,0.96);
-    }
-
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    tr:hover td {
-      background: rgba(15,23,42,0.9);
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 2px 7px;
-      border-radius: 999px;
-      font-size: 10px;
-      border: 1px solid rgba(148,163,253,0.75);
-      background: rgba(15,23,42,0.95);
-    }
-
-    .badge-muted {
-      background: rgba(15,23,42,0.9);
-      border-color: rgba(148,163,253,0.5);
-      color: rgba(148,163,253,0.95);
-    }
-
-    .badge-soft {
-      background: rgba(15,23,42,0.9);
-      border-color: rgba(148,163,253,0.4);
-      color: rgba(209,213,219,0.95);
-    }
-
-    .client-actions {
-      display: flex;
-      gap: 6px;
-      justify-content: flex-end;
-    }
-
-    .warning {
-      font-size: 11px;
-      color: var(--danger);
-      background: var(--danger-soft);
-      border-radius: 10px;
-      padding: 6px 8px;
-      border: 1px solid rgba(248,113,113,0.6);
-      display: flex;
-      align-items: flex-start;
-      gap: 6px;
-      margin-top: 4px;
-    }
-
-    .warning-icon {
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(248,113,113,0.9);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-    }
-
-    /* Modals */
-
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at 50% 0, rgba(15,23,42,0.92), rgba(3,7,18,0.98));
-      backdrop-filter: blur(18px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 40;
-    }
-
-    .modal-backdrop.active {
-      display: flex;
-    }
-
-    .modal {
-      width: 460px;
-      max-width: 100%;
-      border-radius: var(--radius-lg);
-      background:
-        radial-gradient(circle at 0% 0%, rgba(37,99,235,0.3), transparent 55%),
-        radial-gradient(circle at 100% 0%, rgba(147,51,234,0.3), transparent 60%),
-        rgba(15,23,42,0.98);
-      border: 1px solid rgba(148,163,253,0.9);
-      box-shadow: var(--shadow-soft);
-      padding: 14px 16px 14px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .modal-title-group {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .modal-title {
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: rgba(229,231,235,0.96);
-    }
-
-    .modal-subtitle {
-      font-size: 11px;
-      color: rgba(209,213,219,0.95);
-    }
-
-    .modal-body {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-size: 12px;
-    }
-
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .footer {
-      margin-top: 10px;
-      font-size: 11px;
-      color: rgba(148,163,253,0.95);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .footer-links {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .footer-links a {
-      color: rgba(191,219,254,0.95);
-      text-decoration: none;
-    }
-
-    .footer-links a:hover {
-      text-decoration: underline;
-    }
-
-    @media (max-width: 960px) {
-      body {
-        padding: 14px;
-      }
-      .main-layout {
-        grid-template-columns: 1fr;
-        height: auto;
-        max-height: none;
-      }
-      .dashboard {
-        min-height: 340px;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .session-info {
-        display: none;
-      }
-      .app-header {
-        border-radius: 16px;
-      }
+      background-color: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh;
+      -webkit-font-smoothing: antialiased; transition: background-color 0.3s, color 0.3s;
+      background-image: radial-gradient(at 0% 0%, rgba(128, 128, 128, 0.05) 0px, transparent 50%),
+                        radial-gradient(at 100% 100%, rgba(128, 128, 128, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+
+    .glass-panel { background: var(--surface); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border); box-shadow: var(--shadow-md); }
+
+    input, select {
+      width: 100%; background: rgba(128, 128, 128, 0.08); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 16px; color: var(--text); font-size: 14px; transition: all 0.2s; outline: none;
+    }
+    input::placeholder { color: var(--text-muted); opacity: 0.8; }
+    input:focus, select:focus { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
+    input.invalid { border-color: var(--danger); }
+
+    .custom-select-wrap { position: relative; width: 100%; user-select: none; }
+    .custom-select-trigger { width: 100%; background: rgba(128, 128, 128, 0.08); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; color: var(--text); font-size: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
+    .custom-select-trigger:hover { border-color: var(--border-focus); }
+    .custom-select-options { position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow-md); z-index: 9999; display: none; flex-direction: column; overflow: hidden; backdrop-filter: blur(16px); }
+    .custom-option { padding: 12px 16px; cursor: pointer; font-size: 14px; color: var(--text); transition: background 0.2s; }
+    .custom-option:hover { background: rgba(128, 128, 128, 0.1); }
+    .custom-select-wrap.open .custom-select-options { display: flex; }
+
+    .input-wrapper { position: relative; width: 100%; }
+    .input-wrapper input { padding-right: 40px; }
+    .icon-btn-absolute { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
+    .icon-btn-absolute:hover { color: var(--text); }
+    .icon-btn-absolute svg { width: 16px !important; height: 16px !important; pointer-events: none; }
+
+    button { border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); outline: none; }
+    button:active:not(:disabled) { transform: scale(0.98); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-main { background: var(--primary-bg); color: var(--primary-text); padding: 10px 18px; border-radius: var(--radius-sm); font-weight: 600; }
+    .btn-main:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 10px 18px; border-radius: var(--radius-sm); }
+    .btn-secondary:hover:not(:disabled) { background: rgba(128, 128, 128, 0.1); border-color: var(--border-focus); }
+    
+    .btn-icon-only { padding: 8px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: var(--radius-sm); }
+    .btn-icon-only:hover:not(:disabled) { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border-focus); }
+    .btn-icon-only svg { width: 16px !important; height: 16px !important; pointer-events: none;}
+    
+    .btn-action svg { width: 16px !important; height: 16px !important; pointer-events: none; }
+    
+    .btn-icon-micro { padding: 6px; background: transparent; border: 1px solid transparent; color: var(--text-muted); border-radius: 4px; display: inline-flex; cursor: pointer;}
+    .btn-icon-micro:hover { color: var(--text); background: rgba(128, 128, 128, 0.1); border-color: var(--border); }
+    .btn-icon-micro svg { width: 14px !important; height: 14px !important; pointer-events: none;}
+
+    #toastContainer { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 10000 !important; pointer-events: none; }
+    .toast { background: var(--surface); backdrop-filter: blur(12px); border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: var(--radius-sm); box-shadow: var(--shadow-md); font-size: 14px; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .toast.error { border-left: 3px solid var(--danger); }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes slideOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(20px) scale(0.95); } }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: none; align-items: flex-start; justify-content: center; z-index: 2000; padding: 10vh 16px; overflow-y: auto; animation: fadeInModal 0.2s ease-out; }
+    @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
+    
+    #modalOverlay { z-index: 9999 !important; }
+    
+    .modal-card { width: 100%; max-width: 400px; padding: 28px; border-radius: var(--radius-md); margin: 0 auto; position: relative; }
+    .modal-card h3 { font-size: 18px; margin-bottom: 8px; font-weight: 600; }
+    .modal-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;}
+    .wide-modal-card { max-width: 540px; width: 100%; }
+
+    .share-table-wrap { margin-top: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: rgba(128, 128, 128, 0.02); }
+    .share-table-wrap table { width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed; }
+    .share-table-wrap th { font-size: 13px; font-weight: 500; color: var(--text-muted); padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    .share-table-wrap td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid rgba(128, 128, 128, 0.08); vertical-align: middle; word-break: break-word; }
+    .share-table-wrap tr:last-child td { border-bottom: none; }
+
+    .login-shell { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; position: relative; }
+    .login-theme-toggle { position: absolute; top: 24px; right: 24px; }
+    .login-card { padding: 48px 40px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 28px; }
+    .login-header { display: flex; flex-direction: column; gap: 10px; text-align: center; }
+    .login-header h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; color: var(--text); }
+    .login-header p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+    .auth-stack { display: flex; flex-direction: column; gap: 16px; }
+    .auth-row { display: flex; gap: 12px; }
+    .auth-row button { flex: 1; }
+    .divider { display: flex; align-items: center; text-align: center; color: var(--text-muted); font-size: 11px; margin: 4px 0; text-transform: uppercase; letter-spacing: 0.05em; }
+    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
+    .divider::before { margin-right: 12px; }
+    .divider::after { margin-left: 12px; }
+    .status { min-height: 20px; font-size: 13px; color: var(--text-muted); text-align: center; }
+    .status.error { color: var(--danger); }
+
+    .app-shell { display: none; width: 100%; max-width: 1080px; margin: 0 auto; padding: 48px 24px; flex-direction: column; gap: 32px; animation: fadeIn 0.4s ease-out; }
+    .app-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+    .title-row h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); display:flex; align-items:center; gap:8px;}
+    .header-actions { display: flex; align-items: center; gap: 14px; }
+    
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: var(--radius-full); background: rgba(128, 128, 128, 0.08); border: 1px solid var(--border); color: var(--text-muted); font-size: 13px; font-weight: 500; backdrop-filter: blur(8px); }
+    .role-badge { background: var(--text); color: var(--bg); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase;}
+
+    .theme-toggle { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: var(--radius-sm); background: transparent; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+    .theme-toggle:hover { background: rgba(128, 128, 128, 0.1); color: var(--text); border-color: var(--border-focus); }
+    .theme-toggle svg { width: 18px !important; height: 18px !important; position: absolute; transition: transform 0.3s, opacity 0.3s; pointer-events: none; }
+    .theme-toggle .sun { opacity: 0; transform: rotate(-90deg); }
+    body.light-mode .theme-toggle .sun { opacity: 1; transform: rotate(0); }
+    body.light-mode .theme-toggle .moon { opacity: 0; transform: rotate(90deg); }
+
+    .card { border-radius: var(--radius-md); padding: 28px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .card-title { font-size: 18px; font-weight: 600; color: var(--text); display:flex; align-items:center; gap:8px;}
+
+    .folder-row { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; align-items: center; }
+    .folder-pills { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; }
+    .folder-pill { background: transparent; color: var(--text-muted); padding: 10px 18px; border-radius: var(--radius-sm); border: 1px solid transparent; font-weight: 500; transition: all 0.2s; display:flex; align-items:center; gap:6px;}
+    .folder-pill:hover { color: var(--text); background: rgba(128, 128, 128, 0.05); }
+    .folder-pill.active { background: var(--text); color: var(--bg); font-weight: 600; border-color: transparent; }
+    .folder-tools { display: flex; gap: 8px; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+    .field { display: flex; flex-direction: column; gap: 8px; }
+    .field label { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+    .form-footer { display: flex; justify-content: flex-end; gap: 14px; margin-top: 24px; }
+
+    .search-wrap { position: relative; width: 320px; max-width: 100%; }
+    .search-wrap input { padding-left: 40px; border-radius: var(--radius-full); }
+    .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 16px; color: var(--text-muted); }
+
+    .table-container { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow-x: auto; margin-top: 20px; background: rgba(128, 128, 128, 0.02); }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { font-size: 13px; font-weight: 500; color: var(--text-muted); padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    td { padding: 16px 20px; font-size: 14px; border-bottom: 1px solid rgba(128, 128, 128, 0.08); vertical-align: middle; }
+    tbody tr { transition: background 0.15s; }
+    tbody tr:hover { background: rgba(128, 128, 128, 0.05); }
+    tbody tr:last-child td { border-bottom: none; }
+    .tag { display: inline-flex; padding: 6px 12px; border-radius: var(--radius-full); background: rgba(128, 128, 128, 0.08); color: var(--text-muted); font-size: 12px; border: 1px solid var(--border); }
+    
+    .table-actions { display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+    .btn-action { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--radius-sm); background: transparent; border: 1px solid transparent; color: var(--text-muted); transition: all 0.2s; cursor: pointer; flex-shrink: 0; }
+    .btn-action:hover:not(:disabled) { background: rgba(128, 128, 128, 0.1); border-color: var(--border); color: var(--text); }
+    
+    .footer { text-align: center; padding: 32px 0 16px 0; color: var(--text-muted); font-size: 13px; margin-top: auto; }
+
+    @media (max-width: 768px) {
+      .card-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .search-wrap { width: 100%; }
+      .folder-row { flex-direction: column; align-items: stretch; }
+      .folder-tools { justify-content: flex-end; }
     }
   </style>
 </head>
 <body>
-  <main>
-    <!-- Header -->
-    <header class="app-header">
-      <div class="app-header-inner">
-        <div class="brand">
-          <div class="brand-logo" aria-hidden="true"></div>
-          <div class="brand-title-group">
-            <div class="brand-name">
-              TechBugs Endpoint Manager
-              <span class="brand-pill">Remote Access</span>
+
+  <form style="display:none" aria-hidden="true">
+      <input type="text" name="fakeusernameremembered" autocomplete="username">
+      <input type="password" name="fakepasswordremembered" autocomplete="current-password">
+  </form>
+
+  <div id="toastContainer"></div>
+
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal-card glass-panel" id="modalBox">
+      <h3 id="modalTitle">Confirm</h3>
+      <p id="modalDesc"></p>
+      <input type="text" id="modalInput" style="display:none;" autocomplete="off" data-lpignore="true">
+      <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+        <button class="btn-secondary" type="button" id="modalCancel">Cancel</button>
+        <button class="btn-main" type="button" id="modalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shareModalOverlay" class="modal-overlay">
+    <div class="modal-card wide-modal-card glass-panel" id="shareModalBox">
+      <div class="card-header" style="margin-bottom: 20px;">
+        <h3 class="card-title">Share Folder</h3>
+        <button type="button" class="icon-btn-absolute" id="closeShareModalBtn" style="position:relative; right:0; top:0; transform:none; padding:8px;" aria-label="Close share modal">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      
+      <div style="display:flex; gap:10px; margin-bottom: 12px; position: relative;">
+        <input type="text" id="val_em_share" placeholder="Enter email address..." style="flex:2;" autocomplete="off" data-lpignore="true">
+        
+        <div class="custom-select-wrap" id="shareRoleWrap" style="flex:1;">
+            <div class="custom-select-trigger" id="shareRoleTrigger">
+                <span id="shareRoleLabel">Editor</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
-            <div class="brand-subtitle">
-              Manage and connect to remote computers from one secure dashboard.
+            <div class="custom-select-options">
+                <div class="custom-option" data-value="editor">Editor (Can edit PCs)</div>
+                <div class="custom-option" data-value="viewer">Viewer (Connect only)</div>
+            </div>
+            <input type="hidden" id="shareRoleInput" value="editor">
+        </div>
+
+        <button class="btn-main" id="inviteUserBtn" type="button">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+            Invite
+        </button>
+      </div>
+      <div style="text-align:right; margin-bottom:24px;">
+          <a href="#" id="copyInviteLinkBtn" style="font-size:12px; color:var(--primary); text-decoration:none; font-weight:500;">Copy Invite Link</a>
+      </div>
+
+      <div class="share-table-wrap">
+        <table>
+          <thead><tr><th style="width:50%;">Member</th><th style="width:35%;">Role</th><th style="width:15%; text-align:center;">Access</th></tr></thead>
+          <tbody id="shareMembersBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="clientModalOverlay" class="modal-overlay">
+    <div class="modal-card wide-modal-card glass-panel" id="clientModalBox">
+      <div class="card-header" style="margin-bottom: 20px;">
+        <h3 class="card-title" id="clientModalTitle">Add Client</h3>
+        <button type="button" class="icon-btn-absolute" id="closeClientModalBtn" style="position:relative; right:0; top:0; transform:none; padding:8px;" aria-label="Close client modal">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      
+      <div class="form-wrapper">
+        <div class="form-grid">
+          <div class="field">
+            <label>Name</label>
+            <input type="text" id="val_n" placeholder="Office-PC-Solapur" autocomplete="off" data-lpignore="true">
+          </div>
+          <div class="field">
+            <label>Remote ID</label>
+            <input type="text" id="val_i" placeholder="123 456 789" autocomplete="off" data-lpignore="true">
+          </div>
+          <div class="field">
+            <label>Auth Key</label>
+            <div class="input-wrapper">
+              <input type="password" id="val_s" placeholder="Device access key" autocomplete="off" spellcheck="false" data-lpignore="true">
+              <button type="button" class="icon-btn-absolute pw-toggle-btn" data-target="val_s" id="toggleClientPass" title="Toggle key">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </div>
+            <small style="color:var(--text-muted); font-size:11px; margin-top:4px;">Warning: Keys are stored unencrypted in the database.</small>
+          </div>
+          <div class="field">
+            <label>Tags</label>
+            <input type="text" id="val_t" placeholder="Win 10 | Shop PC" autocomplete="off" data-lpignore="true">
+          </div>
+          <div class="field" id="moveFolderWrap" style="display:none;">
+            <label>Folder</label>
+            <div class="custom-select-wrap">
+                <div class="custom-select-trigger">
+                    <span id="clientFolderSelectLabel">Select Folder</span>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+                <div class="custom-select-options" id="clientFolderSelectOptions"></div>
+                <input type="hidden" id="clientFolderSelectInput">
             </div>
           </div>
         </div>
+        <div class="form-footer">
+          <button class="btn-secondary" type="button" id="cancelClientBtn">Cancel</button>
+          <button class="btn-main" type="button" id="saveClientBtn">Save Client</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="session-info">
-          <div class="session-status">
-            <span class="session-dot" aria-hidden="true"></span>
-            <span class="session-label" id="session-status-label">Not signed in</span>
+  <section class="login-shell" id="loginShell">
+    <button type="button" class="theme-toggle login-theme-toggle" title="Toggle Theme" aria-label="Toggle theme">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+    </button>
+    <div class="login-card glass-panel" id="authBoxCore">
+      <div class="login-header">
+        <h2>TechBugs Endpoint Manager</h2>
+        <p>Sign in to manage your remote computers.</p>
+      </div>
+      
+      <div class="auth-stack">
+        <button class="btn-secondary" type="button" id="googleLoginBtn" style="width: 100%;">
+          <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Continue with Google
+        </button>
+        
+        <div class="divider">OR</div>
+        
+        <form id="emailAuthForm" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 12px;">
+          <input type="text" id="authEmail" placeholder="Email address" autocomplete="username">
+          <div class="input-wrapper">
+            <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password">
+            <button type="button" class="icon-btn-absolute pw-toggle-btn" data-target="authPassword" id="toggleAuthPass" title="Toggle password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
           </div>
-          <span class="session-meta-pill" id="session-user-label">Guest</span>
-          <button type="button" class="btn btn-secondary btn-small" id="logout-btn">
-            Log out
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-top: 2px;">
+            <label style="display:flex; align-items:center; gap:6px; color:var(--text-muted); cursor:pointer;"><input type="checkbox" id="keepSignedIn" checked style="width:auto;"> Keep me signed in</label>
+            <a href="#" id="forgotPassBtn" style="color:var(--text-muted); text-decoration:none; transition:color 0.2s;">Forgot password?</a>
+          </div>
+        </form>
+        
+        <div class="auth-row" style="margin-top: 4px;">
+          <button class="btn-secondary" type="button" id="emailSignupBtn">Create Account</button>
+          <button class="btn-main" type="button" id="emailLoginBtn">Sign In</button>
+        </div>
+        
+        <div class="status" id="loginStatus"></div>
+      </div>
+    </div>
+  </section>
+
+  <main class="app-shell" id="appShell">
+    <div class="app-header">
+      <div class="title-row">
+        <h1>TechBugs Endpoint Manager</h1>
+      </div>
+      <div class="header-actions">
+        <div class="pill">
+            <span id="userEmail">Not signed in</span> 
+            <span style="margin:0 8px; opacity:0.3;">|</span> 
+            <span id="syncStatus" style="color:var(--text);">Waiting</span>
+        </div>
+        <button type="button" class="theme-toggle" title="Toggle Theme" aria-label="Toggle theme">
+          <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        </button>
+        <button class="btn-secondary" type="button" id="logoutBtn">Log out</button>
+      </div>
+    </div>
+
+    <section class="card glass-panel">
+      <div class="folder-row">
+        <div class="folder-pills" id="folderPills"></div>
+        <div class="folder-tools" id="folderToolsUI">
+          
+          <button class="btn-icon-only" type="button" id="moveLeftBtn" title="Move Left">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button class="btn-icon-only" type="button" id="moveRightBtn" title="Move Right">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+          
+          <div style="width: 1px; background: var(--border); margin: 0 6px;" id="moveDivider"></div>
+          
+          <button class="btn-secondary" type="button" id="addFolderBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+            New Folder
+          </button>
+          
+          <button class="btn-secondary" type="button" id="shareFolderBtn" style="color:var(--primary); border-color:var(--primary-glow);">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            Share
+          </button>
+          <button class="btn-icon-only" type="button" id="renameFolderBtn" title="Rename Folder">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
+          <button class="btn-icon-only" type="button" id="deleteFolderBtn" title="Delete Folder" style="color: var(--danger);">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
           </button>
         </div>
       </div>
-    </header>
+    </section>
 
-    <div class="main-layout">
-      <!-- Auth panel -->
-      <section class="auth-panel" aria-label="Sign in" id="auth-panel">
-        <div class="auth-panel-inner">
-          <header class="auth-header">
-            <h1 class="auth-title">Sign in to manage your remote computers</h1>
-            <p class="auth-subtitle">
-              Use a TechBugs account to access enrolled devices. This demo keeps everything in your browser only.
-            </p>
-          </header>
-
-          <form class="auth-form" id="login-form">
-            <div class="form-field">
-              <label for="login-email" class="form-label">Email</label>
-              <input id="login-email" type="email" class="form-input" required placeholder="you@example.com">
-            </div>
-
-            <div class="form-field">
-              <label for="login-password" class="form-label">Password</label>
-              <input id="login-password" type="password" class="form-input" required placeholder="••••••••">
-            </div>
-
-            <div class="form-footer">
-              <div class="form-footer-row">
-                <label class="checkbox">
-                  <input type="checkbox" id="keep-signed-in">
-                  Keep me signed in (demo only)
-                </label>
-                <button type="button" class="btn-link" id="forgot-password-btn">
-                  Forgot password?
-                </button>
-              </div>
-
-              <div class="form-footer-row">
-                <button type="submit" class="btn btn-primary">
-                  Sign In (demo)
-                </button>
-                <button type="button" class="btn btn-text" id="create-account-btn">
-                  Create Account (demo)
-                </button>
-              </div>
-            </div>
-
-            <p id="auth-status" style="font-size:11px;color:var(--text-muted);margin-top:4px;"></p>
-          </form>
+    <section class="card glass-panel">
+      <div class="card-header" style="margin-bottom:0; flex-wrap: wrap; gap: 16px;">
+        <div class="card-title" style="display:flex; align-items:center; gap:12px;">
+            <span id="folderLabel">Remote Computers</span>
+            <span id="roleBadge" class="role-badge" style="display:none;"></span>
         </div>
-      </section>
-
-      <!-- Dashboard -->
-      <section class="dashboard" aria-label="Remote computers dashboard" id="dashboard-panel">
-        <div class="dashboard-inner">
-          <header class="section-header">
-            <div class="section-header-main">
-              <h2 class="section-title">Remote Computers</h2>
-              <p class="section-subtitle">
-                Add demo endpoints and test how the list behaves. No real connections are made.
-              </p>
+        
+        <div style="display:flex; gap: 12px; align-items:center; flex:1; justify-content: flex-end;">
+            <div class="search-wrap" style="flex:1; max-width: 320px;">
+              <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="searchBox" placeholder="Search clients, IDs, or tags..." autocomplete="off">
             </div>
-            <div class="toolbar">
-              <button type="button" class="btn btn-secondary btn-small" id="new-folder-btn">
-                New Folder (demo)
-              </button>
-              <button type="button" class="btn btn-secondary btn-small" id="share-folder-btn">
-                Share
-              </button>
-              <button type="button" class="btn btn-primary btn-small" id="add-client-btn">
-                Add Client
-              </button>
-            </div>
-          </header>
-
-          <div class="clients-wrapper">
-            <div class="clients-table-wrap">
-              <div class="clients-table-inner">
-                <table aria-label="Demo remote computers" id="clients-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Client</th>
-                      <th scope="col">Remote ID</th>
-                      <th scope="col">Auth Key</th>
-                      <th scope="col">Notes</th>
-                      <th scope="col">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="clients-tbody">
-                    <!-- Filled by JS -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="warning" role="note">
-              <span class="warning-icon" aria-hidden="true">!</span>
-              <span>
-                Keys shown here are demo values and stored only in your browser.
-                In production, avoid storing real remote keys unencrypted in any database.
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <!-- Share Folder modal -->
-    <div class="modal-backdrop" id="share-modal" aria-hidden="true">
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
-        <header class="modal-header">
-          <div class="modal-title-group">
-            <h2 id="share-modal-title" class="modal-title">Share Folder</h2>
-            <p class="modal-subtitle">
-              Invite team members with editor or viewer access to this demo folder.
-            </p>
-          </div>
-          <button type="button" class="btn btn-text btn-small" id="share-close-btn">
-            Close
-          </button>
-        </header>
-        <div class="modal-body">
-          <div class="form-field">
-            <label class="form-label" for="share-email">Invite by email</label>
-            <input id="share-email" type="email" class="form-input" placeholder="teammate@company.com">
-          </div>
-          <div class="form-field">
-            <span class="form-label">Role</span>
-            <label class="checkbox">
-              <input type="radio" name="share-role" value="editor" checked>
-              Editor (can connect, edit and delete clients)
-            </label>
-            <label class="checkbox">
-              <input type="radio" name="share-role" value="viewer">
-              Viewer (connect only, no edits)
-            </label>
-          </div>
-          <div class="form-field">
-            <span class="form-label">Share link</span>
-            <button type="button" class="btn btn-secondary btn-small" id="copy-share-link-btn">
-              Copy demo invite link
+            <button class="btn-main" type="button" id="openAddClientModalBtn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add Client
             </button>
-          </div>
-          <p id="share-status" style="font-size:11px;color:var(--text-muted);"></p>
         </div>
-        <footer class="modal-footer">
-          <button type="button" class="btn btn-text" id="share-cancel-btn">
-            Cancel
-          </button>
-          <button type="button" class="btn btn-primary" id="share-confirm-btn">
-            Confirm
-          </button>
-        </footer>
       </div>
-    </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:25%;">Client</th>
+              <th style="width:20%;">ID</th>
+              <th style="width:20%;">Auth Key</th>
+              <th style="width:20%;">Notes</th>
+              <th style="width:15%;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="clientsBody"></tbody>
+        </table>
+      </div>
+    </section>
 
-    <!-- Add Client modal -->
-    <div class="modal-backdrop" id="add-client-modal" aria-hidden="true">
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="add-client-modal-title">
-        <header class="modal-header">
-          <div class="modal-title-group">
-            <h2 id="add-client-modal-title" class="modal-title">Add Client</h2>
-            <p class="modal-subtitle">
-              Register a demo remote computer with a name, ID and dummy key.
-            </p>
-          </div>
-          <button type="button" class="btn btn-text btn-small" id="add-client-close-btn">
-            Close
-          </button>
-        </header>
-        <div class="modal-body">
-          <div class="form-field">
-            <label class="form-label" for="client-name">Name</label>
-            <input id="client-name" type="text" class="form-input" placeholder="Office PC – Solapur">
-          </div>
-          <div class="form-field">
-            <label class="form-label" for="client-id">Remote ID</label>
-            <input id="client-id" type="text" class="form-input" placeholder="TB-123456">
-          </div>
-          <div class="form-field">
-            <label class="form-label" for="client-key">Auth Key</label>
-            <input id="client-key" type="text" class="form-input" placeholder="Demo key only">
-          </div>
-          <div class="form-field">
-            <label class="form-label" for="client-notes">Notes</label>
-            <input id="client-notes" type="text" class="form-input" placeholder="Location, contact, ISP, etc.">
-          </div>
-          <p class="warning" role="alert">
-            <span class="warning-icon" aria-hidden="true">!</span>
-            <span>
-              This is a demo. Do not paste any real remote access keys here.
-            </span>
-          </p>
-          <p id="add-client-status" style="font-size:11px;color:var(--text-muted);"></p>
-        </div>
-        <footer class="modal-footer">
-          <button type="button" class="btn btn-text" id="add-client-cancel-btn">
-            Cancel
-          </button>
-          <button type="button" class="btn btn-primary" id="add-client-save-btn">
-            Save Client
-          </button>
-        </footer>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <span>Build Version 1.0 (demo shell)</span>
-      <div class="footer-links">
-        <a href="https://techbugs.in" target="_blank" rel="noopener">TechBugs</a>
-        <span>·</span>
-        <a href="https://wa.me/91XXXXXXXXXX" target="_blank" rel="noopener">
-          Support &amp; Feedback: Chat on WhatsApp
-        </a>
-      </div>
-    </footer>
+    <div class="footer">Build Version 1.0 | Support & Feedback: <a href="https://wa.me/917028533162?text=Hi%20TechBugs,%20I%20need%20support%20with%20Endpoint%20Manager" target="_blank" style="color: var(--text); text-decoration: none;">Chat on WhatsApp</a></div>
   </main>
 
-  <script>
-    // --- Simple demo auth state ---
-    const authPanel = document.getElementById('auth-panel');
-    const dashboardPanel = document.getElementById('dashboard-panel');
-    const loginForm = document.getElementById('login-form');
-    const authStatus = document.getElementById('auth-status');
-    const sessionStatusLabel = document.getElementById('session-status-label');
-    const sessionUserLabel = document.getElementById('session-user-label');
-    const logoutBtn = document.getElementById('logout-btn');
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, browserLocalPersistence, browserSessionPersistence, createUserWithEmailAndPassword, onAuthStateChanged, setPersistence, signInWithEmailAndPassword, signInWithPopup, signOut, sendPasswordResetEmail, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+    import { getFirestore, doc, collection, query, where, addDoc, updateDoc, deleteDoc, getDocs, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
-    let demoUser = null;
+    const THEME_KEY = 'techbugs_theme';
 
-    function updateAuthUI() {
-      if (demoUser) {
-        authPanel.style.display = 'none';
-        dashboardPanel.style.opacity = '1';
-        sessionStatusLabel.textContent = 'Signed in (demo)';
-        sessionUserLabel.textContent = demoUser.email;
-        authStatus.textContent = '';
+    const ICONS = {
+      connect: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>',
+      edit: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>',
+      eye: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
+      eyeOff: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>',
+      delete: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>',
+      up: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>',
+      down: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>',
+      copy: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>',
+      userRemove: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="18" y1="8" x2="23" y2="13"></line><line x1="23" y1="8" x2="18" y2="13"></line></svg>',
+      userIcon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'
+    };
+
+    const embeddedFirebaseConfig = {
+      apiKey: 'AIzaSyCKYXqwaY9wtZtDqdxPKelC46AbM5WaBGc',
+      authDomain: 'techbugs-directory.firebaseapp.com',
+      projectId: 'techbugs-directory',
+      storageBucket: 'techbugs-directory.firebasestorage.app',
+      messagingSenderId: '693496099094',
+      appId: '1:693496099094:web:0257ddf91b70c4fd756037'
+    };
+
+    // --- STATE ---
+    let foldersMap = new Map(); 
+    let sortedFolders = []; 
+    let currentFolderId = null;
+    let editIndex = null;
+    let auth = null;
+    let db = null;
+    let activeUser = null;
+    let unsubscribeOwned = null;
+    let unsubscribeShared = null;
+    let lastInvitedEmail = ''; 
+    let autoHideTimeouts = new Map();
+
+    // --- Core Master Delegate Click Handler ---
+    document.addEventListener('click', async (e) => {
+        
+        const toggleBtn = e.target.closest('.theme-toggle');
+        if (toggleBtn) {
+            e.preventDefault();
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem(THEME_KEY, document.body.classList.contains('light-mode') ? 'light' : 'dark');
+            return;
+        }
+
+        const selectTrigger = e.target.closest('.custom-select-trigger');
+        if (selectTrigger) {
+            e.stopPropagation();
+            const wrap = selectTrigger.closest('.custom-select-wrap');
+            const wasOpen = wrap.classList.contains('open');
+            document.querySelectorAll('.custom-select-wrap.open').forEach(w => w.classList.remove('open'));
+            if (!wasOpen) wrap.classList.add('open');
+            return;
+        }
+
+        const selectOption = e.target.closest('.custom-option');
+        if (selectOption) {
+            e.stopPropagation();
+            const wrap = selectOption.closest('.custom-select-wrap');
+            const input = wrap.querySelector('input[type="hidden"]');
+            const label = wrap.querySelector('.custom-select-trigger span');
+            
+            const newVal = selectOption.getAttribute('data-value');
+            input.value = newVal;
+            label.textContent = selectOption.textContent;
+            wrap.classList.remove('open');
+
+            if (input.classList.contains('dynamic-role-input')) {
+                const email = input.getAttribute('data-email');
+                updateMemberRoleInDB(email, newVal);
+            }
+            return;
+        }
+
+        const pwToggle = e.target.closest('.pw-toggle-btn');
+        if (pwToggle) {
+            e.preventDefault();
+            const targetId = pwToggle.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                pwToggle.innerHTML = ICONS.eyeOff;
+            } else {
+                input.type = 'password';
+                pwToggle.innerHTML = ICONS.eye;
+            }
+            
+            try { 
+                input.focus();
+                input.setSelectionRange(start, end); 
+            } catch(err) {}
+            return;
+        }
+
+        document.querySelectorAll('.custom-select-wrap.open').forEach(w => w.classList.remove('open'));
+        
+        const tableBtn = e.target.closest('.btn-action, .btn-icon-micro');
+        if (tableBtn && e.target.closest('#clientsBody')) {
+            const idxRaw = tableBtn.getAttribute('data-idx');
+            const folder = currentFolder();
+            if (!folder) return;
+            
+            if (tableBtn.classList.contains('action-connect')) {
+                const cid = tableBtn.getAttribute('data-id');
+                if (cid) window.location.href = `rustdesk://${encodeURIComponent(cid.replace(/\s+/g, ''))}`;
+            }
+            else if (tableBtn.classList.contains('action-copyid')) {
+                copyToClipboard(tableBtn.getAttribute('data-id'), 'ID');
+            }
+            else if (tableBtn.classList.contains('action-copykey')) {
+                copyToClipboard(tableBtn.getAttribute('data-key'), 'Auth Key');
+            }
+            else if (tableBtn.classList.contains('action-eyekey')) {
+                const hiddenSpan = tableBtn.parentElement.querySelector('.hidden-pass');
+                const realSpan = tableBtn.parentElement.querySelector('.real-pass');
+                const btnId = tableBtn.getAttribute('data-key');
+                
+                if (hiddenSpan.style.display === 'none') {
+                    hiddenSpan.style.display = 'inline';
+                    realSpan.style.display = 'none';
+                    tableBtn.innerHTML = ICONS.eye;
+                    if(autoHideTimeouts.has(btnId)) clearTimeout(autoHideTimeouts.get(btnId));
+                } else {
+                    hiddenSpan.style.display = 'none';
+                    realSpan.style.display = 'inline';
+                    tableBtn.innerHTML = ICONS.eyeOff;
+                    
+                    if(autoHideTimeouts.has(btnId)) clearTimeout(autoHideTimeouts.get(btnId));
+                    autoHideTimeouts.set(btnId, setTimeout(() => {
+                        hiddenSpan.style.display = 'inline';
+                        realSpan.style.display = 'none';
+                        tableBtn.innerHTML = ICONS.eye;
+                    }, 15000));
+                }
+            }
+            else if (idxRaw !== null) {
+                const idx = parseInt(idxRaw);
+                const queryTxt = document.getElementById('searchBox').value.trim();
+                
+                if (tableBtn.classList.contains('action-edit')) {
+                    loadIntoForm(idx);
+                }
+                else if (tableBtn.classList.contains('action-up')) {
+                    if (idx > 0 && !queryTxt) {
+                        [folder.clients[idx], folder.clients[idx - 1]] = [folder.clients[idx - 1], folder.clients[idx]];
+                        renderTable(); 
+                        try { await persistFolder(folder); } catch(err){}
+                    }
+                }
+                else if (tableBtn.classList.contains('action-down')) {
+                    if (idx < folder.clients.length - 1 && !queryTxt) {
+                        [folder.clients[idx], folder.clients[idx + 1]] = [folder.clients[idx + 1], folder.clients[idx]];
+                        renderTable(); 
+                        try { await persistFolder(folder); } catch(err){}
+                    }
+                }
+                else if (tableBtn.classList.contains('action-del')) {
+                    const confirmDel = await openModal('Delete Client', `Are you sure you want to delete this client?`);
+                    if (confirmDel) {
+                        folder.clients.splice(idx, 1);
+                        renderTable(); 
+                        try { await persistFolder(folder); showToast('Client deleted'); } catch (err) {}
+                    }
+                }
+            }
+        }
+    });
+
+    // --- Helper Functions ---
+    function bindEvent(id, eventType, callback) {
+        const el = document.getElementById(id);
+        if (el) { el.addEventListener(eventType, callback); }
+    }
+
+    function showToast(msg, isError = false) {
+      const container = document.getElementById('toastContainer');
+      if(!container) return;
+      const toast = document.createElement('div');
+      toast.className = `toast ${isError ? 'error' : ''}`;
+      toast.innerHTML = isError 
+        ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span>${msg}</span>`
+        : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--border-focus)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function openModal(title, desc, isPrompt = false, defaultVal = '') {
+      return new Promise((resolve) => {
+        const overlay = document.getElementById('modalOverlay');
+        if(!overlay) { resolve(isPrompt ? prompt(desc, defaultVal) : confirm(desc)); return; }
+        
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalDesc').textContent = desc;
+        const inputEl = document.getElementById('modalInput');
+        inputEl.style.display = isPrompt ? 'block' : 'none';
+        inputEl.value = defaultVal;
+        
+        overlay.style.display = 'flex';
+        if (isPrompt) inputEl.focus();
+
+        const cleanup = () => { overlay.style.display = 'none'; };
+        document.getElementById('modalConfirm').onclick = () => { cleanup(); resolve(isPrompt ? inputEl.value : true); };
+        document.getElementById('modalCancel').onclick = () => { cleanup(); resolve(null); };
+      });
+    }
+
+    function copyToClipboard(text, type) {
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => showToast(`${type} copied to clipboard`));
+    }
+
+    function setLoginStatus(message, tone = '') {
+      const el = document.getElementById('loginStatus');
+      if (el) { el.textContent = message || ''; el.className = `status${tone ? ` ${tone}` : ''}`; }
+    }
+
+    function isValidEmail(email) {
+      if (!email) return false;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function getFriendlyAuthError(error) {
+      const code = (error && error.code) || '';
+      switch (code) {
+        case 'auth/invalid-email':
+          return 'That email address looks invalid. Please check and try again.';
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+          return 'Incorrect email or password. Please try again.';
+        case 'auth/too-many-requests':
+          return 'Too many attempts. Please wait a bit and try again.';
+        case 'auth/network-request-failed':
+          return 'Network error. Please check your internet connection.';
+        case 'auth/popup-closed-by-user':
+          return 'Sign-in popup was closed before completing.';
+        default:
+          return 'Something went wrong while signing you in. Please try again.';
+      }
+    }
+
+    function setSyncStatus(message) {
+      const ss = document.getElementById('syncStatus');
+      if (ss) ss.textContent = message;
+    }
+
+    // --- Modals ---
+    function openClientModal(isEdit = false) {
+      if(!isEdit) resetForm();
+      const modal = document.getElementById('clientModalOverlay');
+      if(modal) { modal.style.display = 'flex'; document.getElementById('val_n').focus(); }
+    }
+    
+    function closeClientModal() {
+      const modal = document.getElementById('clientModalOverlay');
+      if(modal) modal.style.display = 'none';
+    }
+
+    function openShareModal() { 
+        document.getElementById('shareModalOverlay').style.display = 'flex'; 
+        renderShareTable(); 
+    }
+    function closeShareModal() { 
+        document.getElementById('shareModalOverlay').style.display = 'none'; 
+        document.getElementById('val_em_share').value = ''; 
+    }
+
+    // --- Shell Navigation ---
+    function showLogin() { 
+      document.getElementById('loginShell').style.display = 'flex'; 
+      document.getElementById('appShell').style.display = 'none'; 
+    }
+    
+    function showApp() { 
+      document.getElementById('loginShell').style.display = 'none'; 
+      document.getElementById('appShell').style.display = 'flex'; 
+      const authBox = document.getElementById('authBoxCore');
+      if (authBox) authBox.innerHTML = ''; 
+    }
+
+    // --- Data Logic ---
+    function currentFolder() { 
+        return sortedFolders.find(f => f.id === currentFolderId); 
+    }
+    
+    function getRole() {
+        const cf = currentFolder();
+        if(!cf) return null;
+        if(cf.owner === activeUser.uid) return 'owner';
+        return (cf.members && cf.members[activeUser.email]) ? cf.members[activeUser.email] : 'viewer';
+    }
+
+    function enforceRoleUI() {
+        if (sortedFolders.length === 0) {
+            document.getElementById('openAddClientModalBtn').style.display = 'none';
+            document.getElementById('folderToolsUI').style.display = 'flex'; 
+            document.getElementById('folderLabel').textContent = 'No Folders';
+            document.getElementById('roleBadge').style.display = 'none';
+            
+            document.getElementById('shareFolderBtn').style.display = 'none';
+            document.getElementById('renameFolderBtn').style.display = 'none';
+            document.getElementById('deleteFolderBtn').style.display = 'none';
+            document.getElementById('moveLeftBtn').style.display = 'none';
+            document.getElementById('moveRightBtn').style.display = 'none';
+            document.getElementById('moveDivider').style.display = 'none';
+            return;
+        }
+
+        const role = getRole();
+        const badge = document.getElementById('roleBadge');
+        
+        if(!role || role === 'owner') {
+            badge.style.display = 'none';
+            document.getElementById('shareFolderBtn').style.display = 'inline-flex';
+            document.getElementById('renameFolderBtn').style.display = 'inline-flex';
+            document.getElementById('deleteFolderBtn').style.display = 'inline-flex';
+            document.getElementById('openAddClientModalBtn').style.display = 'inline-flex';
+            document.getElementById('moveLeftBtn').style.display = 'inline-flex';
+            document.getElementById('moveRightBtn').style.display = 'inline-flex';
+            document.getElementById('moveDivider').style.display = 'block';
+        } else {
+            badge.style.display = 'inline';
+            badge.textContent = role.toUpperCase();
+            badge.style.background = 'var(--text-muted)';
+            badge.style.color = 'var(--bg)';
+            
+            document.getElementById('shareFolderBtn').style.display = 'none';
+            document.getElementById('renameFolderBtn').style.display = 'none';
+            document.getElementById('deleteFolderBtn').style.display = 'none';
+            document.getElementById('openAddClientModalBtn').style.display = (role === 'editor') ? 'inline-flex' : 'none';
+            document.getElementById('moveLeftBtn').style.display = 'none';
+            document.getElementById('moveRightBtn').style.display = 'none';
+            document.getElementById('moveDivider').style.display = 'none';
+        }
+    }
+
+    async function persistFolder(folderObj) {
+      if (!activeUser || !db || !folderObj.id) return;
+      setSyncStatus('Syncing...');
+      const ref = doc(db, 'folders', folderObj.id);
+      await updateDoc(ref, { 
+          clients: folderObj.clients, 
+          name: folderObj.name,
+          updatedAt: serverTimestamp() 
+      });
+      setSyncStatus('Synced');
+    }
+
+    function processFoldersMap() {
+        sortedFolders = Array.from(foldersMap.values()).sort((a, b) => (a.order || 0) - (b.order || 0));
+        
+        if (sortedFolders.length > 0) {
+            if (!currentFolderId || !sortedFolders.find(f => f.id === currentFolderId)) {
+                currentFolderId = sortedFolders[0].id;
+            }
+        } else {
+            currentFolderId = null;
+        }
+        
+        renderFolders();
+        enforceRoleUI();
+        renderTable();
+    }
+
+    function setupDataListeners() {
+        if (unsubscribeOwned) unsubscribeOwned();
+        if (unsubscribeShared) unsubscribeShared();
+        
+        foldersMap.clear();
+
+        const qOwned = query(collection(db, 'folders'), where('owner', '==', activeUser.uid));
+        unsubscribeOwned = onSnapshot(qOwned, (snapshot) => {
+            try {
+                snapshot.docChanges().forEach((change) => {
+                    if(change.type === 'removed') foldersMap.delete(change.doc.id);
+                    else {
+                        const data = change.doc.data();
+                        if(data.order === undefined) data.order = Date.now();
+                        foldersMap.set(change.doc.id, { id: change.doc.id, ...data });
+                    }
+                });
+                processFoldersMap();
+                setSyncStatus('Synced');
+            } catch (e) {
+                console.error(e);
+            }
+        }, (error) => {
+            setSyncStatus('Database Error');
+        });
+
+        const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', activeUser.email));
+        unsubscribeShared = onSnapshot(qShared, (snapshot) => {
+            try {
+                snapshot.docChanges().forEach((change) => {
+                    if(change.type === 'removed') foldersMap.delete(change.doc.id);
+                    else {
+                        const data = change.doc.data();
+                        if(data.order === undefined) data.order = Date.now();
+                        foldersMap.set(change.doc.id, { id: change.doc.id, ...data });
+                    }
+                });
+                processFoldersMap();
+                setSyncStatus('Synced');
+            } catch(e) {
+                console.error(e);
+            }
+        });
+    }
+
+    // --- Render Logic ---
+    function renderFolders() {
+      const pills = document.getElementById('folderPills');
+      if(!pills) return;
+      pills.innerHTML = '';
+      
+      sortedFolders.forEach((folder) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `folder-pill${folder.id === currentFolderId ? ' active' : ''}`;
+        
+        if(folder.owner !== activeUser.uid) {
+            btn.innerHTML = `${ICONS.userIcon} <span>${escapeHtml(folder.name)}</span>`;
+        } else {
+            btn.textContent = folder.name;
+        }
+        
+        btn.addEventListener('click', () => {
+          currentFolderId = folder.id;
+          resetForm();
+          renderFolders();
+          enforceRoleUI();
+          renderTable();
+        });
+        pills.appendChild(btn);
+      });
+      
+      const cf = currentFolder();
+      if(cf) document.getElementById('folderLabel').textContent = cf.name;
+    }
+
+    function escapeHtml(value) { 
+        if (!value) return '';
+        return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); 
+    }
+
+    function renderTable() {
+      const cBody = document.getElementById('clientsBody');
+      const searchBx = document.getElementById('searchBox');
+      if(!cBody || !searchBx) return;
+
+      cBody.innerHTML = '';
+      const folder = currentFolder();
+      if (!folder || !folder.clients) return;
+
+      const queryTxt = searchBx.value.trim().toLowerCase();
+      
+      const filtered = queryTxt ? folder.clients.filter(c => 
+          (c.name || '').toLowerCase().includes(queryTxt) || 
+          (c.id || '').toLowerCase().includes(queryTxt) ||
+          (c.notes || '').toLowerCase().includes(queryTxt)
+      ) : folder.clients;
+      
+      const role = getRole();
+      const isViewer = (role === 'viewer');
+
+      if (filtered.length === 0) {
+          cBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted)">No endpoints yet. Click "Add Client" to get started.</td></tr>`;
+          return;
+      }
+
+      filtered.forEach((client) => {
+        try {
+            const index = folder.clients.indexOf(client);
+            const tr = document.createElement('tr');
+
+            const tdName = document.createElement('td');
+            tdName.style.fontWeight = '500';
+            tdName.style.color = 'var(--text)';
+            tdName.textContent = client.name || '';
+            tr.appendChild(tdName);
+
+            const tdId = document.createElement('td');
+            tdId.style.fontFamily = 'monospace';
+            const idWrap = document.createElement('div');
+            idWrap.style.display = 'flex';
+            idWrap.style.alignItems = 'center';
+            idWrap.style.gap = '8px';
+            
+            const idSpan = document.createElement('span');
+            idSpan.textContent = client.id || '';
+            
+            const copyIdBtn = document.createElement('button');
+            copyIdBtn.className = 'btn-icon-micro action-copyid';
+            copyIdBtn.setAttribute('data-id', client.id);
+            copyIdBtn.title = 'Copy ID';
+            copyIdBtn.innerHTML = ICONS.copy;
+            
+            idWrap.appendChild(idSpan);
+            idWrap.appendChild(copyIdBtn);
+            tdId.appendChild(idWrap);
+            tr.appendChild(tdId);
+
+            const tdPass = document.createElement('td');
+            tdPass.style.fontFamily = 'monospace';
+            
+            if (client.password) {
+                const passWrap = document.createElement('div');
+                passWrap.style.display = 'flex';
+                passWrap.style.alignItems = 'center';
+                passWrap.style.gap = '8px';
+                
+                const hiddenSpan = document.createElement('span');
+                hiddenSpan.className = 'hidden-pass';
+                hiddenSpan.textContent = '••••••••';
+                
+                const realSpan = document.createElement('span');
+                realSpan.className = 'real-pass';
+                realSpan.textContent = client.password;
+                realSpan.style.display = 'none';
+                
+                const eyeBtn = document.createElement('button');
+                eyeBtn.className = 'btn-icon-micro action-eyekey';
+                eyeBtn.setAttribute('data-key', client.id); 
+                eyeBtn.title = 'Toggle Key';
+                eyeBtn.innerHTML = ICONS.eye;
+                
+                const copyPassBtn = document.createElement('button');
+                copyPassBtn.className = 'btn-icon-micro action-copykey';
+                copyPassBtn.setAttribute('data-key', client.password);
+                copyPassBtn.title = 'Copy Key';
+                copyPassBtn.innerHTML = ICONS.copy;
+                
+                passWrap.appendChild(hiddenSpan);
+                passWrap.appendChild(realSpan);
+                passWrap.appendChild(eyeBtn);
+                passWrap.appendChild(copyPassBtn);
+                tdPass.appendChild(passWrap);
+            }
+            tr.appendChild(tdPass);
+
+            const tdNotes = document.createElement('td');
+            if (client.notes) {
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.textContent = client.notes;
+                tdNotes.appendChild(tag);
+            }
+            tr.appendChild(tdNotes);
+
+            const tdActions = document.createElement('td');
+            const actWrap = document.createElement('div');
+            actWrap.className = 'table-actions';
+
+            const connectBtn = document.createElement('button');
+            connectBtn.className = 'btn-action action-connect';
+            connectBtn.setAttribute('data-id', client.id);
+            connectBtn.title = 'Connect';
+            connectBtn.innerHTML = ICONS.connect;
+            actWrap.appendChild(connectBtn);
+
+            if (!isViewer) {
+                const btnUp = document.createElement('button');
+                btnUp.className = 'btn-action action-up';
+                btnUp.setAttribute('data-idx', index);
+                btnUp.title = 'Move Up';
+                btnUp.innerHTML = ICONS.up;
+                if (index === 0 || queryTxt !== '') btnUp.disabled = true;
+
+                const btnDown = document.createElement('button');
+                btnDown.className = 'btn-action action-down';
+                btnDown.setAttribute('data-idx', index);
+                btnDown.title = 'Move Down';
+                btnDown.innerHTML = ICONS.down;
+                if (index === folder.clients.length - 1 || queryTxt !== '') btnDown.disabled = true;
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn-action action-edit';
+                editBtn.setAttribute('data-idx', index);
+                editBtn.title = 'Edit';
+                editBtn.innerHTML = ICONS.edit;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-action action-del';
+                deleteBtn.setAttribute('data-idx', index);
+                deleteBtn.title = 'Delete';
+                deleteBtn.style.color = 'var(--danger)';
+                deleteBtn.innerHTML = ICONS.delete;
+                
+                actWrap.appendChild(btnUp);
+                actWrap.appendChild(btnDown);
+                actWrap.appendChild(editBtn);
+                actWrap.appendChild(deleteBtn);
+            }
+
+            tdActions.appendChild(actWrap);
+            tr.appendChild(tdActions);
+
+            cBody.appendChild(tr);
+            
+        } catch (error) {
+            console.error('Error rendering client index ' + folder.clients.indexOf(client), error);
+        }
+      });
+    }
+
+    async function updateMemberRoleInDB(email, newRole) {
+        const cf = currentFolder();
+        if(!cf) return;
+        const ref = doc(db, 'folders', cf.id);
+        let newMembers = {...cf.members};
+        newMembers[email] = newRole;
+        await updateDoc(ref, { members: newMembers });
+        showToast('Role updated to ' + newRole);
+    }
+
+    function renderShareTable() {
+      const tb = document.getElementById('shareMembersBody');
+      const cf = currentFolder();
+      if(!tb || !cf) return;
+      tb.innerHTML = '';
+      
+      Object.keys(cf.members || {}).forEach(email => {
+         const role = cf.members[email];
+         const row = document.createElement('tr');
+         
+         const isEditor = role === 'editor' ? 'Editor' : 'Viewer';
+         
+         row.innerHTML = `
+            <td style="padding: 12px 16px; font-size: 13px; border-bottom: 1px solid rgba(128, 128, 128, 0.08); vertical-align: middle; word-break: break-all; padding-right: 10px;">${escapeHtml(email)}</td>
+            <td style="padding: 12px 16px; font-size: 13px; border-bottom: 1px solid rgba(128, 128, 128, 0.08); vertical-align: middle;">
+                <div class="custom-select-wrap">
+                    <div class="custom-select-trigger" style="padding: 6px 12px;">
+                        <span>${isEditor}</span>
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                    <div class="custom-select-options">
+                        <div class="custom-option" data-value="editor">Editor</div>
+                        <div class="custom-option" data-value="viewer">Viewer</div>
+                    </div>
+                    <input type="hidden" class="dynamic-role-input" data-email="${escapeHtml(email)}" value="${escapeHtml(role)}">
+                </div>
+            </td>
+            <td style="padding: 12px 16px; font-size: 13px; border-bottom: 1px solid rgba(128, 128, 128, 0.08); vertical-align: middle; text-align:center;"><button class="btn-icon-micro rm-btn" style="color:var(--danger);" title="Remove User">${ICONS.userRemove}</button></td>
+         `;
+         
+         row.querySelector('.rm-btn').addEventListener('click', async () => {
+             const confirmed = await openModal('Remove User', `Revoke access for ${email}?`);
+             if(!confirmed) return;
+             
+             const ref = doc(db, 'folders', cf.id);
+             let newMembers = {...cf.members};
+             delete newMembers[email];
+             let newShared = cf.sharedWith.filter(e => e !== email);
+
+             await updateDoc(ref, { members: newMembers, sharedWith: newShared });
+             
+             cf.members = newMembers;
+             cf.sharedWith = newShared;
+             renderShareTable();
+             showToast('Access revoked');
+         });
+         tb.appendChild(row);
+      });
+    }
+
+    // --- Folder / Client Actions ---
+    function resetForm() {
+      const nameInput = document.getElementById('val_n');
+      const idInput = document.getElementById('val_i');
+      
+      nameInput.value = ''; 
+      nameInput.classList.remove('invalid');
+      idInput.value = ''; 
+      idInput.classList.remove('invalid');
+      
+      document.getElementById('val_s').value = ''; 
+      document.getElementById('val_t').value = '';
+      const passInput = document.getElementById('val_s');
+      const passToggle = document.getElementById('toggleClientPass');
+      if (passInput) {
+        passInput.type = 'password';
+      }
+      if (passToggle) {
+        passToggle.innerHTML = ICONS.eye;
+        passToggle.title = 'Toggle key';
+      }
+      
+      editIndex = null; 
+      document.getElementById('clientModalTitle').textContent = 'Add Client';
+      document.getElementById('saveClientBtn').textContent = 'Save Client';
+    }
+
+    function loadIntoForm(index) {
+      const client = currentFolder()?.clients[index];
+      if (!client) return;
+      
+      const nameInput = document.getElementById('val_n');
+      const idInput = document.getElementById('val_i');
+      
+      nameInput.value = client.name || ''; 
+      nameInput.classList.remove('invalid');
+      idInput.value = client.id || ''; 
+      idInput.classList.remove('invalid');
+      
+      document.getElementById('val_s').value = client.password || ''; 
+      document.getElementById('val_t').value = client.notes || '';
+      const passInput = document.getElementById('val_s');
+      const passToggle = document.getElementById('toggleClientPass');
+      if (passInput) {
+        passInput.type = 'password';
+      }
+      if (passToggle) {
+        passToggle.innerHTML = ICONS.eye;
+        passToggle.title = 'Toggle key';
+      }
+      
+      editIndex = index;
+      document.getElementById('clientModalTitle').textContent = `Edit Client #${index + 1}`;
+      document.getElementById('saveClientBtn').textContent = 'Update Client';
+      
+      const cfs = document.getElementById('clientFolderSelectOptions');
+      const hiddenInput = document.getElementById('clientFolderSelectInput');
+      const triggerLabel = document.getElementById('clientFolderSelectLabel');
+      
+      cfs.innerHTML = '';
+      sortedFolders.forEach((f, i) => {
+        const opt = document.createElement('div');
+        opt.className = 'custom-option';
+        opt.setAttribute('data-value', i);
+        opt.textContent = f.name;
+        cfs.appendChild(opt);
+        
+        if (f.id === currentFolderId) {
+            hiddenInput.value = i;
+            triggerLabel.textContent = f.name;
+        }
+      });
+      
+      document.getElementById('moveFolderWrap').style.display = 'flex';
+      openClientModal(true);
+    }
+
+    async function moveFolder(dir) {
+      if(sortedFolders.length < 2) return;
+      const idx = sortedFolders.findIndex(f => f.id === currentFolderId);
+      if (idx === -1) return;
+
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= sortedFolders.length) return;
+
+      const currentF = sortedFolders[idx];
+      const targetF = sortedFolders[newIdx];
+
+      if (currentF.owner !== activeUser.uid || targetF.owner !== activeUser.uid) {
+          showToast('You can only reorder folders you own.', true);
+          return;
+      }
+
+      const tempOrder = currentF.order || Date.now();
+      const targetOrder = targetF.order || (Date.now() + dir);
+
+      if (tempOrder === targetOrder) {
+          currentF.order = tempOrder + dir;
+          targetF.order = targetOrder - dir;
       } else {
-        authPanel.style.display = 'block';
-        sessionStatusLabel.textContent = 'Not signed in';
-        sessionUserLabel.textContent = 'Guest';
-      }
-    }
-
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('login-email').value.trim();
-      const password = document.getElementById('login-password').value.trim();
-      if (!email || !password) {
-        authStatus.textContent = 'Please enter email and password.';
-        return;
-      }
-      demoUser = { email };
-      authStatus.textContent = 'Signed in (demo). No real authentication performed.';
-      updateAuthUI();
-    });
-
-    logoutBtn.addEventListener('click', () => {
-      demoUser = null;
-      authStatus.textContent = 'You have been signed out of the demo.';
-      updateAuthUI();
-    });
-
-    document.getElementById('create-account-btn').addEventListener('click', () => {
-      authStatus.textContent = 'Account creation is simulated in this demo shell.';
-    });
-
-    document.getElementById('forgot-password-btn').addEventListener('click', () => {
-      authStatus.textContent = 'Password reset is not implemented in this demo shell.';
-    });
-
-    // --- Demo clients list and table rendering ---
-    const clientsTbody = document.getElementById('clients-tbody');
-
-    let demoClients = [
-      {
-        name: 'Demo Office PC',
-        id: 'TB-000000',
-        key: '••••-••••-••••',
-        notes: 'Sample client row for layout preview'
-      }
-    ];
-
-    function renderClients() {
-      clientsTbody.innerHTML = '';
-      if (demoClients.length === 0) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 5;
-        td.style.textAlign = 'center';
-        td.style.padding = '28px 0';
-        td.style.color = 'var(--text-muted)';
-        td.textContent = 'No endpoints yet. Click "Add Client" to add a demo entry.';
-        tr.appendChild(td);
-        clientsTbody.appendChild(tr);
-        return;
+          currentF.order = targetOrder;
+          targetF.order = tempOrder;
       }
 
-      demoClients.forEach((client, index) => {
-        const tr = document.createElement('tr');
+      sortedFolders.sort((a, b) => a.order - b.order);
+      renderFolders();
 
-        const tdName = document.createElement('td');
-        const badge = document.createElement('span');
-        badge.className = 'badge';
-        badge.textContent = client.name;
-        tdName.appendChild(badge);
-
-        const tdId = document.createElement('td');
-        const idBadge = document.createElement('span');
-        idBadge.className = 'badge badge-muted';
-        idBadge.textContent = client.id;
-        tdId.appendChild(idBadge);
-
-        const tdKey = document.createElement('td');
-        const keyBadge = document.createElement('span');
-        keyBadge.className = 'badge badge-soft';
-        keyBadge.textContent = client.key;
-        tdKey.appendChild(keyBadge);
-
-        const tdNotes = document.createElement('td');
-        const notesBadge = document.createElement('span');
-        notesBadge.className = 'badge badge-soft';
-        notesBadge.textContent = client.notes || '';
-        tdNotes.appendChild(notesBadge);
-
-        const tdActions = document.createElement('td');
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'client-actions';
-
-        const connectBtn = document.createElement('button');
-        connectBtn.type = 'button';
-        connectBtn.className = 'btn btn-secondary btn-small';
-        connectBtn.textContent = 'Connect';
-        connectBtn.addEventListener('click', () => {
-          alert('Demo connect to: ' + client.name);
-        });
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'btn btn-text btn-small';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', () => {
-          demoClients.splice(index, 1);
-          renderClients();
-        });
-
-        actionsDiv.appendChild(connectBtn);
-        actionsDiv.appendChild(deleteBtn);
-        tdActions.appendChild(actionsDiv);
-
-        tr.appendChild(tdName);
-        tr.appendChild(tdId);
-        tr.appendChild(tdKey);
-        tr.appendChild(tdNotes);
-        tr.appendChild(tdActions);
-
-        clientsTbody.appendChild(tr);
-      });
-    }
-
-    // --- Modals logic ---
-    const shareModal = document.getElementById('share-modal');
-    const addClientModal = document.getElementById('add-client-modal');
-
-    function openModal(modal) {
-      modal.classList.add('active');
-      modal.setAttribute('aria-hidden', 'false');
-    }
-
-    function closeModal(modal) {
-      modal.classList.remove('active');
-      modal.setAttribute('aria-hidden', 'true');
-    }
-
-    // Share modal events
-    document.getElementById('share-folder-btn').addEventListener('click', () => {
-      openModal(shareModal);
-    });
-
-    document.getElementById('share-close-btn').addEventListener('click', () => {
-      closeModal(shareModal);
-    });
-
-    document.getElementById('share-cancel-btn').addEventListener('click', () => {
-      closeModal(shareModal);
-    });
-
-    document.getElementById('share-confirm-btn').addEventListener('click', () => {
-      const email = document.getElementById('share-email').value.trim();
-      const role = document.querySelector('input[name="share-role"]:checked')?.value || 'viewer';
-      const status = document.getElementById('share-status');
-      status.textContent = email
-        ? `Demo: would invite ${email} as ${role}.`
-        : 'Demo: no email entered.';
-    });
-
-    document.getElementById('copy-share-link-btn').addEventListener('click', async () => {
-      const status = document.getElementById('share-status');
-      const fakeLink = 'https://techbugs-demo.local/share/ABC123';
       try {
-        await navigator.clipboard.writeText(fakeLink);
-        status.textContent = 'Demo invite link copied to clipboard.';
-      } catch {
-        status.textContent = 'Could not copy link (browser blocked clipboard).';
+          await updateDoc(doc(db, 'folders', currentF.id), { order: currentF.order });
+          await updateDoc(doc(db, 'folders', targetF.id), { order: targetF.order });
+      } catch (e) {
+          console.error(e);
       }
-    });
+    }
 
-    // Add Client modal events
-    document.getElementById('add-client-btn').addEventListener('click', () => {
-      document.getElementById('client-name').value = '';
-      document.getElementById('client-id').value = '';
-      document.getElementById('client-key').value = '';
-      document.getElementById('client-notes').value = '';
-      document.getElementById('add-client-status').textContent = '';
-      openModal(addClientModal);
-    });
+    async function addFolder() {
+      const name = await openModal('New Folder', 'Enter a name for the new folder:', true);
+      if (!name || !name.trim()) return;
+      
+      const newFolder = {
+          name: name.trim(),
+          owner: activeUser.uid,
+          ownerEmail: activeUser.email,
+          sharedWith: [],
+          members: {},
+          clients: [],
+          order: Date.now(),
+          createdAt: serverTimestamp()
+      };
+      
+      try {
+          const docRef = await addDoc(collection(db, 'folders'), newFolder);
+          currentFolderId = docRef.id;
+          showToast('Folder created');
+      } catch (e) {
+          showToast('Failed to create folder.', true);
+      }
+    }
 
-    document.getElementById('add-client-close-btn').addEventListener('click', () => {
-      closeModal(addClientModal);
-    });
+    async function renameFolder() {
+      const cf = currentFolder(); if (!cf) return;
+      const name = await openModal('Rename Folder', 'Enter a new name:', true, cf.name);
+      if (!name || !name.trim() || name.trim() === cf.name) return;
+      cf.name = name.trim();
+      await persistFolder(cf);
+      showToast('Folder renamed');
+    }
 
-    document.getElementById('add-client-cancel-btn').addEventListener('click', () => {
-      closeModal(addClientModal);
-    });
+    async function deleteFolder() {
+      const cf = currentFolder(); if (!cf) return;
+      const confirmed = await openModal('Delete Folder', `Are you sure you want to completely delete "${cf.name}"? This removes it for everyone.`);
+      if (!confirmed) return;
+      
+      try {
+          await deleteDoc(doc(db, 'folders', cf.id));
+          foldersMap.delete(cf.id);
+          currentFolderId = null;
+          resetForm();
+          processFoldersMap();
+          showToast('Folder deleted');
+      } catch (e) {
+          showToast('Failed to delete folder.', true);
+      }
+    }
 
-    document.getElementById('add-client-save-btn').addEventListener('click', () => {
-      const name = document.getElementById('client-name').value.trim();
-      const id = document.getElementById('client-id').value.trim();
-      const key = document.getElementById('client-key').value.trim();
-      const notes = document.getElementById('client-notes').value.trim();
-      const status = document.getElementById('add-client-status');
+    async function saveClientHandler(event) {
+      if(event) event.preventDefault();
+      
+      const folder = currentFolder();
+      if (!folder) { showToast('Create a folder first.', true); return; }
 
-      if (!name || !id) {
-        status.textContent = 'Name and Remote ID are required for a demo client.';
+      const nameInput = document.getElementById('val_n');
+      const idInput = document.getElementById('val_i');
+      const name = nameInput.value.trim();
+      const id = idInput.value.trim(); 
+      const password = document.getElementById('val_s').value.trim();
+      const notes = document.getElementById('val_t').value.trim();
+
+      nameInput.classList.remove('invalid');
+      idInput.classList.remove('invalid');
+
+      if (!name || !id) { 
+        if(!name) nameInput.classList.add('invalid');
+        if(!id) idInput.classList.add('invalid');
+        showToast('Client Name and ID are required.', true); 
+        return; 
+      }
+
+      const idClean = id.replace(/\s+/g, '');
+      if (!/^[0-9]+$/.test(idClean)) {
+        idInput.classList.add('invalid');
+        showToast('Remote ID should contain only numbers and spaces.', true);
         return;
       }
 
-      demoClients.push({
-        name,
-        id,
-        key: key || 'demo-key',
-        notes
-      });
+      if(!folder.clients) folder.clients = [];
+      const isDup = folder.clients.some((c, i) => i !== editIndex && (c.id === id || c.name === name));
+      if (isDup) { showToast('A client with this Name or ID already exists here.', true); return; }
 
-      renderClients();
-      status.textContent = 'Demo client added.';
-      setTimeout(() => closeModal(addClientModal), 400);
+      const btn = document.getElementById('saveClientBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      const payload = { name, id, password, notes };
+      
+      if (editIndex === null) {
+        folder.clients.push(payload);
+        showToast('Client saved');
+      } else {
+        const targetFolderIdx = parseInt(document.getElementById('clientFolderSelectInput').value);
+        const targetFolder = sortedFolders[targetFolderIdx];
+        
+        if (targetFolder && targetFolder.id !== folder.id) {
+          if(!targetFolder.clients) targetFolder.clients = [];
+          targetFolder.clients.push(payload);
+          folder.clients.splice(editIndex, 1);
+          
+          try { await persistFolder(targetFolder); } catch(e) { console.error(e); }
+          showToast(`Client moved to ${targetFolder.name}`);
+        } else {
+          folder.clients[editIndex] = payload;
+          showToast('Client updated');
+        }
+      }
+
+      nameInput.blur();
+      document.getElementById('val_s').blur();
+      document.getElementById('clientModalOverlay').style.display = 'none';
+      
+      setTimeout(() => {
+          nameInput.value = '';
+          idInput.value = '';
+          document.getElementById('val_s').value = '';
+          document.getElementById('val_t').value = '';
+      }, 200);
+      
+      renderTable();
+      
+      try {
+          await persistFolder(folder);
+      } catch (err) {
+          showToast('Failed to sync to cloud.', true);
+          console.error(err);
+      } finally {
+          btn.disabled = false;
+          btn.textContent = 'Save Client';
+      }
+    }
+
+    // --- Authentication ---
+    async function signInWithGoogle() {
+      const eBox = document.getElementById('authEmail'); const pBox = document.getElementById('authPassword');
+      if(eBox) eBox.value = ''; if(pBox) pBox.value = '';
+      setLoginStatus('Opening Google sign-in...');
+      const btn = document.getElementById('googleLoginBtn');
+      if (btn) { btn.disabled = true; }
+      try {
+        await signInWithPopup(auth, new GoogleAuthProvider());
+      } catch(e) {
+        setLoginStatus(getFriendlyAuthError(e), 'error');
+      } finally {
+        if (btn) { btn.disabled = false; }
+      }
+    }
+
+    async function signInWithEmail() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      if (!email || !password) { setLoginStatus('Enter your email and password first.', 'error'); return; }
+      if (!isValidEmail(email)) { setLoginStatus('Enter a valid email address.', 'error'); return; }
+      setLoginStatus('Signing you in...');
+      const btnLogin = document.getElementById('emailLoginBtn');
+      const btnSignup = document.getElementById('emailSignupBtn');
+      if (btnLogin) btnLogin.disabled = true;
+      if (btnSignup) btnSignup.disabled = true;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch(e) {
+        setLoginStatus(getFriendlyAuthError(e), 'error');
+      } finally {
+        if (btnLogin) btnLogin.disabled = false;
+        if (btnSignup) btnSignup.disabled = false;
+      }
+    }
+
+    async function createAccount() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      if (!email || !password) { setLoginStatus('Enter an email and password to create the account.', 'error'); return; }
+      if (!isValidEmail(email)) { setLoginStatus('Enter a valid email address.', 'error'); return; }
+      if (password.length < 6) { setLoginStatus('Password must be at least 6 characters.', 'error'); return; }
+      setLoginStatus('Creating your account...');
+      const btnLogin = document.getElementById('emailLoginBtn');
+      const btnSignup = document.getElementById('emailSignupBtn');
+      if (btnLogin) btnLogin.disabled = true;
+      if (btnSignup) btnSignup.disabled = true;
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await sendEmailVerification(userCredential.user);
+        setLoginStatus('Account created! Check your email to verify.', 'success');
+      } catch(e) {
+        setLoginStatus(getFriendlyAuthError(e), 'error');
+      } finally {
+        if (btnLogin) btnLogin.disabled = false;
+        if (btnSignup) btnSignup.disabled = false;
+      }
+    }
+
+    async function resetPassword() {
+      const email = document.getElementById('authEmail').value.trim();
+      if (!email) { setLoginStatus('Enter your email in the box first to reset password.', 'error'); return; }
+      if (!isValidEmail(email)) { setLoginStatus('Enter a valid email address before resetting password.', 'error'); return; }
+      try { await sendPasswordResetEmail(auth, email); setLoginStatus('Password reset email sent!', 'success'); } catch(e) { setLoginStatus(getFriendlyAuthError(e), 'error'); }
+    }
+
+    async function logout() {
+      if (auth) await signOut(auth);
+      window.location.reload(); 
+    }
+
+    // --- Initializer ---
+    window.addEventListener('DOMContentLoaded', () => {
+        bindEvent('openAddClientModalBtn', 'click', () => openClientModal(false));
+        bindEvent('closeClientModalBtn', 'click', closeClientModal);
+        bindEvent('cancelClientBtn', 'click', closeClientModal);
+        bindEvent('shareFolderBtn', 'click', openShareModal);
+        bindEvent('closeShareModalBtn', 'click', closeShareModal);
+        bindEvent('searchBox', 'input', renderTable);
+        bindEvent('clearBtn', 'click', resetForm);
+        bindEvent('moveLeftBtn', 'click', () => moveFolder(-1));
+        bindEvent('moveRightBtn', 'click', () => moveFolder(1));
+        bindEvent('addFolderBtn', 'click', addFolder);
+        bindEvent('renameFolderBtn', 'click', renameFolder);
+        bindEvent('deleteFolderBtn', 'click', deleteFolder);
+        bindEvent('saveClientBtn', 'click', saveClientHandler);
+        bindEvent('logoutBtn', 'click', logout);
+        bindEvent('googleLoginBtn', 'click', signInWithGoogle);
+        bindEvent('emailLoginBtn', 'click', signInWithEmail);
+        bindEvent('emailSignupBtn', 'click', createAccount);
+        bindEvent('forgotPassBtn', 'click', async (e) => { e.preventDefault(); resetPassword(); });
+
+        const authPwBox = document.getElementById('authPassword');
+        if(authPwBox) {
+            authPwBox.addEventListener('keydown', async (event) => { 
+                if (event.key === 'Enter') { 
+                    event.preventDefault(); 
+                    signInWithEmail();
+                } 
+            });
+        }
+
+        bindEvent('keepSignedIn', 'change', async (e) => {
+          if(auth) { try { await setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence); } catch (error) { console.error(error); } }
+        });
+
+        ['val_n', 'val_i', 'val_s', 'val_t'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('keydown', (e) => {
+                    if(e.key === 'Enter') {
+                        e.preventDefault();
+                        if (!document.getElementById('saveClientBtn').disabled) {
+                            document.getElementById('saveClientBtn').click();
+                        }
+                    }
+                });
+            }
+        });
+
+        bindEvent('inviteUserBtn', 'click', async () => {
+            const cf = currentFolder();
+            if(!cf) return;
+            const email = document.getElementById('val_em_share').value.trim().toLowerCase();
+            const role = document.getElementById('shareRoleInput').value;
+            if(!email) { showToast('Enter an email address', true); return; }
+            
+            let newMembers = {...(cf.members || {})};
+            newMembers[email] = role;
+            let newShared = [...(cf.sharedWith || [])];
+            if(!newShared.includes(email)) newShared.push(email);
+
+            const ref = doc(db, 'folders', cf.id);
+            await updateDoc(ref, { members: newMembers, sharedWith: newShared });
+            
+            cf.members = newMembers; cf.sharedWith = newShared;
+            
+            lastInvitedEmail = email; 
+            document.getElementById('val_em_share').value = '';
+            
+            renderShareTable();
+            showToast('User granted access!');
+        });
+
+        bindEvent('copyInviteLinkBtn', 'click', (e) => {
+            e.preventDefault();
+            const cf = currentFolder();
+            if(!cf) return;
+            
+            const boxEmail = document.getElementById('val_em_share').value.trim().toLowerCase();
+            const targetEmail = boxEmail || lastInvitedEmail;
+            
+            const emailPrefix = targetEmail ? `Please log in with your email id: ${targetEmail}\n\n` : ``;
+            const msg = `${emailPrefix}You have been invited to access the "${cf.name}" folder on the TechBugs Endpoint Manager. Log in to view the endpoints: ${window.location.href}`;
+            copyToClipboard(msg, 'Invite Link');
+        });
+
+        // Offline State Monitoring
+        window.addEventListener('offline', () => setSyncStatus('Offline'));
+        window.addEventListener('online', () => setSyncStatus('Synced'));
+
+        initializeFirebase();
     });
 
-    // New folder demo
-    document.getElementById('new-folder-btn').addEventListener('click', () => {
-      alert('Folder management is not implemented in this demo shell yet.');
-    });
+    async function initializeFirebase() {
+      showLogin();
 
-    // Initial render
-    updateAuthUI();
-    renderClients();
+      try {
+          const app = initializeApp(embeddedFirebaseConfig);
+          auth = getAuth(app); db = getFirestore(app);
+          
+          const keepSignedInBox = document.getElementById('keepSignedIn');
+          if(keepSignedInBox) { setPersistence(auth, keepSignedInBox.checked ? browserLocalPersistence : browserSessionPersistence).catch(console.error); }
+
+          onAuthStateChanged(auth, async (user) => {
+            activeUser = user;
+
+            if (!user) {
+              if (unsubscribeOwned) { unsubscribeOwned(); unsubscribeOwned = null; }
+              if (unsubscribeShared) { unsubscribeShared(); unsubscribeShared = null; }
+              const emailEl = document.getElementById('userEmail');
+              if(emailEl) emailEl.textContent = 'Not signed in';
+              setSyncStatus('Waiting'); showLogin(); return;
+            }
+
+            const emailEl = document.getElementById('userEmail');
+            if(emailEl) emailEl.textContent = user.email || 'Google account';
+            setSyncStatus('Loading...');
+            
+            try {
+                const qOwned = query(collection(db, 'folders'), where('owner', '==', user.uid));
+                const snap = await getDocs(qOwned);
+                const qShared = query(collection(db, 'folders'), where('sharedWith', 'array-contains', user.email));
+                const snapShared = await getDocs(qShared);
+                
+                if(snap.empty && snapShared.empty) {
+                    const newFolder = {
+                        name: 'My Endpoints',
+                        owner: user.uid,
+                        ownerEmail: user.email,
+                        sharedWith: [],
+                        members: {},
+                        clients: [],
+                        order: Date.now(),
+                        createdAt: serverTimestamp()
+                    };
+                    const docRef = await addDoc(collection(db, 'folders'), newFolder);
+                    foldersMap.set(docRef.id, { id: docRef.id, ...newFolder });
+                    processFoldersMap();
+                }
+
+                setupDataListeners();
+                showApp();
+                
+            } catch (error) {
+                console.error(error);
+                setSyncStatus('Database Offline');
+                showToast('Failed to load database. Check Firebase connection.', true);
+            }
+          });
+      } catch (err) {
+          setLoginStatus("Firebase Error: " + err.message, 'error');
+      }
+    }
   </script>
 </body>
 </html>
