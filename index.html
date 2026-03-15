@@ -61,8 +61,6 @@
     input::placeholder { color: var(--text-muted); opacity: 0.8; }
     input:focus, select:focus { border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
 
-    .mask-pw { -webkit-text-security: disc; text-security: disc; }
-
     .custom-select-wrap { position: relative; width: 100%; user-select: none; }
     .custom-select-trigger { width: 100%; background: rgba(128, 128, 128, 0.08); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; color: var(--text); font-size: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
     .custom-select-trigger:hover { border-color: var(--border-focus); }
@@ -278,8 +276,8 @@
           <div class="field">
             <label>Auth Key</label>
             <div class="input-wrapper">
-              <input type="text" id="val_s" class="mask-pw" placeholder="Device access key" autocomplete="off" spellcheck="false" data-lpignore="true">
-              <button type="button" class="icon-btn-absolute" id="toggleClientPass" title="Show key">
+              <input type="password" id="val_s" placeholder="Device access key" autocomplete="off" spellcheck="false" data-lpignore="true">
+              <button type="button" class="icon-btn-absolute pw-toggle-btn" data-target="val_s" id="toggleClientPass" title="Toggle key">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
@@ -331,7 +329,7 @@
           <input type="text" id="authEmail" placeholder="Email address" autocomplete="username">
           <div class="input-wrapper">
             <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password">
-            <button type="button" class="icon-btn-absolute" id="toggleAuthPass" title="Show password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+            <button type="button" class="icon-btn-absolute pw-toggle-btn" data-target="authPassword" id="toggleAuthPass" title="Toggle password"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
           </div>
           
           <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-top: 2px;">
@@ -520,19 +518,34 @@
             return;
         }
 
-        const toggleClientPassBtn = e.target.closest('#toggleClientPass');
-        if (toggleClientPassBtn) {
+        // --- NEW: Universal Password Toggle Logic ---
+        const pwToggle = e.target.closest('.pw-toggle-btn');
+        if (pwToggle) {
             e.preventDefault();
-            const input = document.getElementById('val_s');
-            if (input.classList.contains('mask-pw')) {
-                input.classList.remove('mask-pw');
-                toggleClientPassBtn.innerHTML = ICONS.eyeOff;
+            const targetId = pwToggle.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            if (!input) return;
+            
+            // Capture cursor position so it doesn't jump
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                pwToggle.innerHTML = ICONS.eyeOff;
             } else {
-                input.classList.add('mask-pw');
-                toggleClientPassBtn.innerHTML = ICONS.eye;
+                input.type = 'password';
+                pwToggle.innerHTML = ICONS.eye;
             }
+            
+            // Restore cursor position seamlessly
+            try { 
+                input.focus();
+                input.setSelectionRange(start, end); 
+            } catch(err) {}
             return;
         }
+        // ------------------------------------------
 
         document.querySelectorAll('.custom-select-wrap.open').forEach(w => w.classList.remove('open'));
         
@@ -647,6 +660,31 @@
     function setLoginStatus(message, tone = '') {
       const el = document.getElementById('loginStatus');
       if (el) { el.textContent = message || ''; el.className = `status${tone ? ` ${tone}` : ''}`; }
+    }
+
+    function isValidEmail(email) {
+      if (!email) return false;
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function getFriendlyAuthError(error) {
+      const code = (error && error.code) || '';
+      switch (code) {
+        case 'auth/invalid-email':
+          return 'That email address looks invalid. Please check and try again.';
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+          return 'Incorrect email or password. Please try again.';
+        case 'auth/too-many-requests':
+          return 'Too many attempts. Please wait a bit and try again.';
+        case 'auth/network-request-failed':
+          return 'Network error. Please check your internet connection.';
+        case 'auth/popup-closed-by-user':
+          return 'Sign-in popup was closed before completing.';
+        default:
+          return 'Something went wrong while signing you in. Please try again.';
+      }
     }
 
     function setSyncStatus(message) {
@@ -1071,9 +1109,15 @@
       document.getElementById('val_i').value = ''; 
       document.getElementById('val_s').value = ''; 
       document.getElementById('val_t').value = '';
-      
-      document.getElementById('val_s').classList.add('mask-pw');
-      document.getElementById('toggleClientPass').innerHTML = ICONS.eye;
+      const passInput = document.getElementById('val_s');
+      const passToggle = document.getElementById('toggleClientPass');
+      if (passInput) {
+        passInput.type = 'password';
+      }
+      if (passToggle) {
+        passToggle.innerHTML = ICONS.eye;
+        passToggle.title = 'Toggle key';
+      }
       
       editIndex = null; 
       document.getElementById('clientModalTitle').textContent = 'Add Client';
@@ -1088,6 +1132,15 @@
       document.getElementById('val_i').value = client.id || ''; 
       document.getElementById('val_s').value = client.password || ''; 
       document.getElementById('val_t').value = client.notes || '';
+      const passInput = document.getElementById('val_s');
+      const passToggle = document.getElementById('toggleClientPass');
+      if (passInput) {
+        passInput.type = 'password';
+      }
+      if (passToggle) {
+        passToggle.innerHTML = ICONS.eye;
+        passToggle.title = 'Toggle key';
+      }
       
       editIndex = index;
       document.getElementById('clientModalTitle').textContent = `Edit Client #${index + 1}`;
@@ -1216,6 +1269,17 @@
 
       if (!name || !id) { showToast('Client Name and ID are required.', true); return; }
 
+      const idClean = id.replace(/\s+/g, '');
+      if (!/^[0-9]+$/.test(idClean)) {
+        showToast('Remote ID should contain only numbers and spaces.', true);
+        return;
+      }
+
+      if (password && password.length < 4) {
+        showToast('Auth Key should be at least 4 characters long.', true);
+        return;
+      }
+
       if(!folder.clients) folder.clients = [];
       const isDup = folder.clients.some((c, i) => i !== editIndex && (c.id === id || c.name === name));
       if (isDup) { showToast('A client with this Name or ID already exists here.', true); return; }
@@ -1275,30 +1339,63 @@
       const eBox = document.getElementById('authEmail'); const pBox = document.getElementById('authPassword');
       if(eBox) eBox.value = ''; if(pBox) pBox.value = '';
       setLoginStatus('Opening Google sign-in...');
-      try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch(e) { setLoginStatus(e.message, 'error'); }
+      const btn = document.getElementById('googleLoginBtn');
+      if (btn) { btn.disabled = true; }
+      try {
+        await signInWithPopup(auth, new GoogleAuthProvider());
+      } catch(e) {
+        setLoginStatus(getFriendlyAuthError(e), 'error');
+      } finally {
+        if (btn) { btn.disabled = false; }
+      }
     }
 
     async function signInWithEmail() {
       const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value;
       if (!email || !password) { setLoginStatus('Enter your email and password first.', 'error'); return; }
+      if (!isValidEmail(email)) { setLoginStatus('Enter a valid email address.', 'error'); return; }
       setLoginStatus('Signing you in...');
-      try { await signInWithEmailAndPassword(auth, email, password); } catch(e) { setLoginStatus(e.message, 'error'); }
+      const btnLogin = document.getElementById('emailLoginBtn');
+      const btnSignup = document.getElementById('emailSignupBtn');
+      if (btnLogin) btnLogin.disabled = true;
+      if (btnSignup) btnSignup.disabled = true;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch(e) {
+        setLoginStatus(getFriendlyAuthError(e), 'error');
+      } finally {
+        if (btnLogin) btnLogin.disabled = false;
+        if (btnSignup) btnSignup.disabled = false;
+      }
     }
 
     async function createAccount() {
       const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value;
       if (!email || !password) { setLoginStatus('Enter an email and password to create the account.', 'error'); return; }
+      if (!isValidEmail(email)) { setLoginStatus('Enter a valid email address.', 'error'); return; }
       if (password.length < 6) { setLoginStatus('Password must be at least 6 characters.', 'error'); return; }
       setLoginStatus('Creating your account...');
-      try { await createUserWithEmailAndPassword(auth, email, password); } catch(e) { setLoginStatus(e.message, 'error'); }
+      const btnLogin = document.getElementById('emailLoginBtn');
+      const btnSignup = document.getElementById('emailSignupBtn');
+      if (btnLogin) btnLogin.disabled = true;
+      if (btnSignup) btnSignup.disabled = true;
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } catch(e) {
+        setLoginStatus(getFriendlyAuthError(e), 'error');
+      } finally {
+        if (btnLogin) btnLogin.disabled = false;
+        if (btnSignup) btnSignup.disabled = false;
+      }
     }
 
     async function resetPassword() {
       const email = document.getElementById('authEmail').value.trim();
       if (!email) { setLoginStatus('Enter your email in the box first to reset password.', 'error'); return; }
-      try { await sendPasswordResetEmail(auth, email); setLoginStatus('Password reset email sent!', 'success'); } catch(e) { setLoginStatus(e.message, 'error'); }
+      if (!isValidEmail(email)) { setLoginStatus('Enter a valid email address before resetting password.', 'error'); return; }
+      try { await sendPasswordResetEmail(auth, email); setLoginStatus('Password reset email sent!', 'success'); } catch(e) { setLoginStatus(getFriendlyAuthError(e), 'error'); }
     }
 
     async function logout() {
@@ -1339,13 +1436,6 @@
 
         bindEvent('keepSignedIn', 'change', async (e) => {
           if(auth) { try { await setPersistence(auth, e.target.checked ? browserLocalPersistence : browserSessionPersistence); } catch (error) { console.error(error); } }
-        });
-
-        bindEvent('toggleAuthPass', 'click', () => {
-          const input = document.getElementById('authPassword');
-          const btn = document.getElementById('toggleAuthPass');
-          if (input.type === 'password') { input.type = 'text'; btn.innerHTML = ICONS.eyeOff; } 
-          else { input.type = 'password'; btn.innerHTML = ICONS.eye; }
         });
 
         ['val_n', 'val_i', 'val_s', 'val_t'].forEach(id => {
